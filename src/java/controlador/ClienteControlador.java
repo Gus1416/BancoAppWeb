@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import logicadeaccesodedatos.ClienteCRUD;
 import logicadenegocios.Cliente;
+import logicadenegocios.Persona;
 import logicadevalidacion.ValidacionCliente;
 
 /**
@@ -23,7 +25,6 @@ import logicadevalidacion.ValidacionCliente;
  */
 @WebServlet(name = "ClienteControlador", urlPatterns = {"/ClienteControlador"})
 public class ClienteControlador extends HttpServlet {
-
 
 	// <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
 	/**
@@ -41,8 +42,8 @@ public class ClienteControlador extends HttpServlet {
 		RequestDispatcher dispatcher = null;
 		accion = request.getParameter("accion");
 		
-		if (accion == null || accion.isEmpty()){
-			dispatcher = request.getRequestDispatcher("Cliente/registrar.jsp");		
+		if (accion.equals("registrarCliente")){
+			dispatcher = request.getRequestDispatcher("Cliente/registroCliente.jsp");		
 			dispatcher.forward(request, response);
 			
 		} else if (accion.equals("guardar")) {
@@ -56,7 +57,7 @@ public class ClienteControlador extends HttpServlet {
 
 			Cliente cliente = new Cliente(identificacion, primerApellido, segundoApellido, nombre, convertirStringADate(fechaNacimiento), numeroTelefono, correoElectronico);
 
-			//NOTA: QUIZÁS HAYA QUE AÑADIRLO A UN ARRAY POR ACÁ
+			//NOTA: QUIZÃS HAYA QUE AÃADIRLO A UN ARRAY POR ACÃ
 			ClienteCRUD clienteCrud = new ClienteCRUD();
 			if (clienteCrud.registrarCliente(cliente)) { //////////////////////VALIDAR NUMERO
 				

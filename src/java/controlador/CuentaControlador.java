@@ -1,22 +1,27 @@
 package controlador;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import logicadeaccesodedatos.ClienteCRUD;
+import logicadeaccesodedatos.CuentaCRUD;
+import logicadenegocios.Busqueda;
+import logicadenegocios.Cuenta;
+import logicadenegocios.Persona;
 
 /**
  *
  * @author Gustavo
  */
-@WebServlet(name = "MenuControlador", urlPatterns = {"/MenuControlador"})
-public class MenuControlador extends HttpServlet {
+@WebServlet(name = "CuentaControlador", urlPatterns = {"/CuentaControlador"})
+public class CuentaControlador extends HttpServlet {
+	ArrayList<Persona> clientes = new ClienteCRUD().consultarClientes();
 
-
-	// <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
 	/**
 	 * Handles the HTTP <code>GET</code> method.
 	 *
@@ -28,24 +33,34 @@ public class MenuControlador extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 					throws ServletException, IOException {
+
 		String accion;
 		RequestDispatcher dispatcher = null;
 		accion = request.getParameter("accion");
-
-		if (accion == null || accion.isEmpty()) {
-			if (request.getSession().getAttribute("mensaje") == null) {
-				request.getSession().setAttribute("mensaje", "");
-			}
-			dispatcher = request.getRequestDispatcher("Menu/index.jsp");
-			dispatcher.forward(request, response);
-
-		} else if (accion.equals("registrarCliente")){
-			dispatcher = request.getRequestDispatcher("/ClienteControlador");
+		
+		if (accion.equals("registrarCuenta")){
+			dispatcher = request.getRequestDispatcher("Cuenta/registroCuenta.jsp");
 			dispatcher.forward(request, response);
 			
-		} else if (accion.equals("registrarCuenta")){
-			dispatcher = request.getRequestDispatcher("/CuentaControlador");
-			dispatcher.forward(request, response);
+		} else if (accion.equals("guardar")){
+			String identificacion = request.getParameter("identificacion");
+			String pin = request.getParameter("pin");
+			double montoInicial = Double.parseDouble(request.getParameter("montoInicial"));
+			
+			Cuenta cuenta = new Cuenta(pin, montoInicial);
+			
+			if (new CuentaCRUD().registrarCuenta(cuenta, identificacion)){
+				Busqueda.buscarCliente(identificacion, clientes).crearCuenta(pin, montoInicial);
+				String mensaje = "Cuenta registrada con éxito"; ////////////////////////////////////////////ARREGLAR
+				request.getSession().setAttribute("mensaje", mensaje);
+
+			} else {
+				String mensaje = "No se pudo registrar la cuenta";////////////////////////////////////////ARREGLAR
+				request.getSession().setAttribute("mensaje", mensaje);
+			}
+			
+			response.sendRedirect("MenuControlador");
+			
 		}
 	}
 

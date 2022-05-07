@@ -4,12 +4,12 @@
     Author     : Gustavo
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="ISO-8859-1"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
         <title>iBanco</title>
         <link rel="stylesheet" type="text/css" href="/BancoAppWeb/CSS/estilos.css"/>
     </head>
@@ -18,10 +18,10 @@
             <h1 id="titulo">iBanco</h1>
             <ul class="nav-ul">
                 <li class="nav-li">
-                    <a href="MenuControlador?accion=registrar">Registrar cliente</a>
+                    <a href="MenuControlador?accion=registrarCliente">Registrar cliente</a>
                 </li>
                 <li class="nav-li">
-                    <a href="">Crear cuenta</a>
+                    <a href="MenuControlador?accion=registrarCuenta">Crear cuenta</a>
                 </li>
                 <li class="nav-li">
                     <a href="">Listar clientes</a>
@@ -32,9 +32,9 @@
             </ul>
         </nav>
         <div class="contenedor">
-            <h2>Seleccione la acciÃ³n que desee realizar en el sistema</h2>
+            <h2>Seleccione la acción que desee realizar en el sistema</h2>
            
-            <h3 id="mensaje-exito">Ãšltimo mensaje del sistema:<br><br><br><%out.print(session.getAttribute("mensaje"));%></h3>
+            <h3 id="mensaje-exito">Último mensaje del sistema:<br><br><br><%out.print(session.getAttribute("mensaje"));%></h3>
         </div>
 
     </body>

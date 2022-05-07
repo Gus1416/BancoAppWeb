@@ -4,12 +4,12 @@
     Author     : Gustavo
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="ISO-8859-1"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
         <title>JSP Page</title>
         <link rel="stylesheet" type="text/css" href="/BancoAppWeb/CSS/estilos.css"/>
 <!--        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">-->
@@ -19,10 +19,10 @@
             <h1 id="titulo">iBanco</h1>
             <ul class="nav-ul">
                 <li class="nav-li">
-                    <a class="nav-a" href="">Registrar cliente</a>
+                    <a class="nav-a" href="MenuControlador?accion=registrarCliente">Registrar cliente</a>
                 </li>
                 <li class="nav-li">
-                    <a class="nav-a" href="">Crear cuenta</a>
+                    <a class="nav-a" href="MenuControlador?accion=registrarCuenta">Crear cuenta</a>
                 </li>
                 <li class="nav-li">
                     <a class="nav-a" href="">Listar clientes</a>
@@ -56,7 +56,7 @@
                 </div>
 
                 <div class="form-input-container">
-                    <label class="form-label">IdentificaciÃ³n</label>
+                    <label class="form-label">Identificación</label>
                     <input class="form-input"  id="identificacion" name="identificacion" type="text" required/>
                 </div>
 
@@ -66,12 +66,12 @@
                 </div>
 
                 <div class="form-input-container">
-                    <label class="form-label">NÃºmero de telÃ©fono</label>
+                    <label class="form-label">Número de teléfono</label>
                     <input class="form-input"  id="numeroTelefono" name="numeroTelefono" type="tel" required/>   
                 </div>
 
                 <div class="form-input-container">
-                    <label class="form-label">Correo electrÃ³nico</label>
+                    <label class="form-label">Correo electrónico</label>
                     <input class="form-input"  id="correoElectronico" name="correoElectronico" type="email" required/>    
                 </div>
 
