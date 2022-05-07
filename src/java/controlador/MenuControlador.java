@@ -39,7 +39,7 @@ public class MenuControlador extends HttpServlet {
 			dispatcher = request.getRequestDispatcher("Menu/index.jsp");
 			dispatcher.forward(request, response);
 
-		} else if (accion.equals("registrarCliente")){
+		} else if (accion.equals("registrarCliente") || accion.equals("listarClientes")){
 			dispatcher = request.getRequestDispatcher("/ClienteControlador");
 			dispatcher.forward(request, response);
 			

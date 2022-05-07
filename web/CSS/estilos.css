@@ -78,3 +78,22 @@ a:link, a:visited, a:active{
     margin: 0 auto;
     width: 97%;
 }
+
+.listas_registros{
+    margin-left: 10%;
+    border: black 1px solid;
+    border-collapse: collapse;
+    width: 80%;
+}
+
+table {
+    border-collapse: collapse;
+}
+ 
+table, th, td {
+    border: 1px solid black;
+}
+ 
+th, td {
+    padding: 5px;
+}

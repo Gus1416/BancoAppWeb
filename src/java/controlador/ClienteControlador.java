@@ -41,12 +41,13 @@ public class ClienteControlador extends HttpServlet {
 		String accion;
 		RequestDispatcher dispatcher = null;
 		accion = request.getParameter("accion");
-		
-		if (accion.equals("registrarCliente")){
-			dispatcher = request.getRequestDispatcher("Cliente/registroCliente.jsp");		
+
+		if (accion.equals("registrarCliente")) {
+			dispatcher = request.getRequestDispatcher("Cliente/registroCliente.jsp");
 			dispatcher.forward(request, response);
-			
+
 		} else if (accion.equals("guardar")) {
+
 			String primerApellido = request.getParameter("primerApellido");
 			String segundoApellido = request.getParameter("segundoApellido");
 			String nombre = request.getParameter("nombre");
@@ -57,10 +58,9 @@ public class ClienteControlador extends HttpServlet {
 
 			Cliente cliente = new Cliente(identificacion, primerApellido, segundoApellido, nombre, convertirStringADate(fechaNacimiento), numeroTelefono, correoElectronico);
 
-			//NOTA: QUIZÃS HAYA QUE AÃADIRLO A UN ARRAY POR ACÃ
 			ClienteCRUD clienteCrud = new ClienteCRUD();
 			if (clienteCrud.registrarCliente(cliente)) { //////////////////////VALIDAR NUMERO
-				
+
 				String mensaje = "Cliente registrado con éxito"; ////////////////////////////////////////////ARREGLAR
 				request.getSession().setAttribute("mensaje", mensaje);
 
@@ -69,7 +69,16 @@ public class ClienteControlador extends HttpServlet {
 				request.getSession().setAttribute("mensaje", mensaje);
 			}
 			response.sendRedirect("MenuControlador");
+
+		} else if (accion.equals("listarClientes")) {
+
+			dispatcher = request.getRequestDispatcher("Cliente/listaClientes.jsp");
+			ArrayList<Cliente> clientes = new ClienteCRUD().consultarClientes();
+			request.setAttribute("clientes", clientes);
+			dispatcher.forward(request, response);
+			
 		}
+
 	}
 
 	/**

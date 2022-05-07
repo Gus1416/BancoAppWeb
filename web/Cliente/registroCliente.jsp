@@ -57,7 +57,7 @@
 
                 <div class="form-input-container">
                     <label class="form-label">Identificación</label>
-                    <input class="form-input"  id="identificacion" name="identificacion" type="text" required/>
+                    <input class="form-input"  id="identificacion" name="identificacion" type="text" pattern="^(?=.*[0-9]).{9,9}$" title="Indique la cédula usando ceros (sin guiones)" required/>
                 </div>
 
                 <div class="form-input-container">

@@ -24,7 +24,7 @@
                     <a href="MenuControlador?accion=registrarCuenta">Crear cuenta</a>
                 </li>
                 <li class="nav-li">
-                    <a href="">Listar clientes</a>
+                    <a href="MenuControlador?accion=listarClientes">Listar clientes</a>
                 </li>
                 <li class="nav-li">
                     <a href="">Listar cuentas</a>
