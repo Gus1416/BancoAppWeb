@@ -61,6 +61,14 @@ public class CuentaControlador extends HttpServlet {
 			
 			response.sendRedirect("MenuControlador");
 			
+		} else if (accion.equals("listarCuentas")){
+			dispatcher = request.getRequestDispatcher("Cuenta/listaCuentas.jsp");
+			ArrayList<Cuenta> cuentas = new CuentaCRUD().consultarCuentas();
+			request.setAttribute("cuentas", cuentas);
+			ArrayList<Cliente> clientes = new ClienteCRUD().consultarClientes();
+			System.out.println(clientes.get(1));
+			request.setAttribute("clientes", clientes);
+			dispatcher.forward(request, response);
 		}
 	}
 

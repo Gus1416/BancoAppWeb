@@ -43,10 +43,10 @@ public class MenuControlador extends HttpServlet {
 			dispatcher = request.getRequestDispatcher("/ClienteControlador");
 			dispatcher.forward(request, response);
 			
-		} else if (accion.equals("registrarCuenta")){
+		} else if (accion.equals("registrarCuenta") || accion.equals("listarCuentas")){
 			dispatcher = request.getRequestDispatcher("/CuentaControlador");
 			dispatcher.forward(request, response);
-		}
+		}	
 	}
 
 	/**

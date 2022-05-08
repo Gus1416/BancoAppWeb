@@ -27,7 +27,7 @@
                     <a href="MenuControlador?accion=listarClientes">Listar clientes</a>
                 </li>
                 <li class="nav-li">
-                    <a href="">Listar cuentas</a>
+                    <a href="MenuControlador?accion=listarCuentas">Listar cuentas</a>
                 </li>
             </ul>
         </nav>
