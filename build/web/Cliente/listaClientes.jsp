@@ -5,7 +5,7 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@taglib  prefix="c" uri="http://java.sun.com/jsp/jstl/core"  %>%>
+<%@taglib  prefix="c" uri="http://java.sun.com/jsp/jstl/core"  %>
 <!DOCTYPE html>
 <html>
     <head>
@@ -14,6 +14,7 @@
         <link rel="stylesheet" type="text/css" href="/BancoAppWeb/CSS/estilos.css"/>
     </head>
     <body>
+        
         <nav class="barnav">
             <h1 id="titulo">iBanco</h1>
             <ul class="nav-ul">
@@ -44,6 +45,7 @@
                         <th>Segundo Apellido</th>
                         <th>Nombre</th>
                         <th>Identificación</th>
+                        <th></th>
                     </tr>        
                 </thead>
 
@@ -55,7 +57,8 @@
                             <td><c:out value="${cliente.primerApellido}"/></td>
                             <td><c:out value="${cliente.segundoApellido}"/></td>
                             <td><c:out value="${cliente.nombre}"/></td>
-                            <td><c:out value="${cliente.identificacion}"/></td>        
+                            <td><c:out value="${cliente.identificacion}"/></td>   
+                            <td class="td_vermas"><a href="ClienteControlador?accion=verDetallesCliente&cliente=${cliente.identificacion}" class="btn-vermas">Ver más</a></td>
                         </tr>
 
                     </c:forEach>

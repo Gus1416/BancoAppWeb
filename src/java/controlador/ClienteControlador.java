@@ -1,7 +1,6 @@
 package controlador;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -16,8 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import logicadeaccesodedatos.ClienteCRUD;
 import logicadenegocios.Cliente;
-import logicadenegocios.Persona;
-import logicadevalidacion.ValidacionCliente;
 
 /**
  *
@@ -26,7 +23,6 @@ import logicadevalidacion.ValidacionCliente;
 @WebServlet(name = "ClienteControlador", urlPatterns = {"/ClienteControlador"})
 public class ClienteControlador extends HttpServlet {
 
-	// <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
 	/**
 	 * Handles the HTTP <code>GET</code> method.
 	 *
@@ -36,18 +32,18 @@ public class ClienteControlador extends HttpServlet {
 	 * @throws IOException if an I/O error occurs
 	 */
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-					throws ServletException, IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String accion;
 		RequestDispatcher dispatcher = null;
 		accion = request.getParameter("accion");
+		System.out.println(accion);
+		System.out.println(request.getParameter("cliente"));
 
 		if (accion.equals("registrarCliente")) {
 			dispatcher = request.getRequestDispatcher("Cliente/registroCliente.jsp");
 			dispatcher.forward(request, response);
 
 		} else if (accion.equals("guardar")) {
-
 			String primerApellido = request.getParameter("primerApellido");
 			String segundoApellido = request.getParameter("segundoApellido");
 			String nombre = request.getParameter("nombre");
@@ -57,10 +53,8 @@ public class ClienteControlador extends HttpServlet {
 			String correoElectronico = request.getParameter("correoElectronico");
 
 			Cliente cliente = new Cliente(identificacion, primerApellido, segundoApellido, nombre, convertirStringADate(fechaNacimiento), numeroTelefono, correoElectronico);
-
-			ClienteCRUD clienteCrud = new ClienteCRUD();
-			if (clienteCrud.registrarCliente(cliente)) { //////////////////////VALIDAR NUMERO
-
+			
+			if (new ClienteCRUD().registrarCliente(cliente)) { //////////////////////VALIDAR NUMERO
 				String mensaje = "Cliente registrado con éxito"; ////////////////////////////////////////////ARREGLAR
 				request.getSession().setAttribute("mensaje", mensaje);
 
@@ -71,12 +65,20 @@ public class ClienteControlador extends HttpServlet {
 			response.sendRedirect("MenuControlador");
 
 		} else if (accion.equals("listarClientes")) {
-
 			dispatcher = request.getRequestDispatcher("Cliente/listaClientes.jsp");
 			ArrayList<Cliente> clientes = new ClienteCRUD().consultarClientes();
 			request.setAttribute("clientes", clientes);
 			dispatcher.forward(request, response);
 			
+		} else if (accion.equals("verDetallesCliente")){		
+
+			dispatcher = request.getRequestDispatcher("Cliente/detallesCliente.jsp");		
+			String identificacion = request.getParameter("cliente");
+			Cliente cliente = new ClienteCRUD().consultarCliente(identificacion);
+			String detallesCliente = cambiarSaltosLinea(cliente.toString() + "Cuentas: <br></br>" + cliente.mostrarNumerosCuentaCliente());
+			
+			request.setAttribute("detallesCliente", detallesCliente);
+			dispatcher.forward(request, response);
 		}
 
 	}
@@ -113,5 +115,10 @@ public class ClienteControlador extends HttpServlet {
 			Logger.getLogger(ClienteControlador.class.getName()).log(Level.SEVERE, null, ex);
 			return null;
 		}
+	}
+	
+	private String cambiarSaltosLinea(String pTexto){
+		String textoCambiado = pTexto.replace("\n", "<br></br>");
+		return textoCambiado;
 	}
 }

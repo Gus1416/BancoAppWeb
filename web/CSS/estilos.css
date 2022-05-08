@@ -97,3 +97,19 @@ table, th, td {
 th, td {
     padding: 5px;
 }
+
+.td_vermas{
+    text-align: center;
+    padding: 12px 0;
+}
+
+.btn-vermas{
+    background-color: darkblue;
+    color: white;
+    padding: 5px 15px;
+}
+
+.btn-vermas:hover {
+    background-color: lightskyblue;
+    color: black;
+}

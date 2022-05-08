@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import logicadeaccesodedatos.ClienteCRUD;
 import logicadeaccesodedatos.CuentaCRUD;
 import logicadenegocios.Busqueda;
+import logicadenegocios.Cliente;
 import logicadenegocios.Cuenta;
 import logicadenegocios.Persona;
 
@@ -20,7 +21,7 @@ import logicadenegocios.Persona;
  */
 @WebServlet(name = "CuentaControlador", urlPatterns = {"/CuentaControlador"})
 public class CuentaControlador extends HttpServlet {
-	ArrayList<Persona> clientes = new ClienteCRUD().consultarClientes();
+	ArrayList<Cliente> clientes = new ClienteCRUD().consultarClientes();
 
 	/**
 	 * Handles the HTTP <code>GET</code> method.
@@ -31,8 +32,7 @@ public class CuentaControlador extends HttpServlet {
 	 * @throws IOException if an I/O error occurs
 	 */
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-					throws ServletException, IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
 		String accion;
 		RequestDispatcher dispatcher = null;
