@@ -69,6 +69,15 @@ public class CuentaControlador extends HttpServlet {
 			System.out.println(clientes.get(1));
 			request.setAttribute("clientes", clientes);
 			dispatcher.forward(request, response);
+			
+		} else if (accion.equals("verDetallesCuenta")){
+			dispatcher = request.getRequestDispatcher("Cuenta/detallesCuenta.jsp");
+			String numeroCuenta = request.getParameter("numeroCuenta");
+			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
+			System.out.println(cuenta);
+			String detallesCuenta = cuenta.toString();
+			request.setAttribute("detallesCuenta", detallesCuenta);
+			dispatcher.forward(request, response);
 		}
 	}
 

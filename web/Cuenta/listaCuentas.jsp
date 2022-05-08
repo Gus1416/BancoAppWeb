@@ -68,7 +68,7 @@
                                 </c:forEach>
                             </c:forEach>
                                         
-                            <td class="td_vermas"><a href="" class="btn-vermas">Ver más</a></td>
+                            <td class="td_vermas"><a href="CuentaControlador?accion=verDetallesCuenta&numeroCuenta=${cuenta.numeroCuenta}" class="btn-vermas">Ver más</a></td>
                         </tr>
 
                     </c:forEach>
