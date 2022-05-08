@@ -36,8 +36,6 @@ public class ClienteControlador extends HttpServlet {
 		String accion;
 		RequestDispatcher dispatcher = null;
 		accion = request.getParameter("accion");
-		System.out.println(accion);
-		System.out.println(request.getParameter("cliente"));
 
 		if (accion.equals("registrarCliente")) {
 			dispatcher = request.getRequestDispatcher("Cliente/registroCliente.jsp");

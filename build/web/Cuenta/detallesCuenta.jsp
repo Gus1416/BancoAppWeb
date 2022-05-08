@@ -29,6 +29,9 @@
                 <li class="nav-li">
                     <a href="MenuControlador?accion=listarCuentas">Listar cuentas</a>
                 </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=cambiarPin">Cambiar pin</a>
+                </li>
             </ul>
         </nav>
         

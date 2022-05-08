@@ -50,7 +50,6 @@ public class CuentaControlador extends HttpServlet {
 			Cuenta cuenta = new Cuenta(pin, montoInicial);
 			
 			if (new CuentaCRUD().registrarCuenta(cuenta, identificacion)){
-				Busqueda.buscarCliente(identificacion, clientes).crearCuenta(pin, montoInicial);
 				String mensaje = "Cuenta registrada con éxito"; ////////////////////////////////////////////ARREGLAR
 				request.getSession().setAttribute("mensaje", mensaje);
 
@@ -66,7 +65,6 @@ public class CuentaControlador extends HttpServlet {
 			ArrayList<Cuenta> cuentas = new CuentaCRUD().consultarCuentas();
 			request.setAttribute("cuentas", cuentas);
 			ArrayList<Cliente> clientes = new ClienteCRUD().consultarClientes();
-			System.out.println(clientes.get(1));
 			request.setAttribute("clientes", clientes);
 			dispatcher.forward(request, response);
 			
@@ -74,11 +72,16 @@ public class CuentaControlador extends HttpServlet {
 			dispatcher = request.getRequestDispatcher("Cuenta/detallesCuenta.jsp");
 			String numeroCuenta = request.getParameter("numeroCuenta");
 			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
-			System.out.println(cuenta);
 			String detallesCuenta = cuenta.toString();
 			request.setAttribute("detallesCuenta", detallesCuenta);
 			dispatcher.forward(request, response);
-		}
+			
+		} else if (accion.equals("cambiarPin")){
+			dispatcher = request.getRequestDispatcher("Cuenta/cambioPin.jsp");
+			request.getSession().setAttribute("intentos", 2);
+			dispatcher.forward(request, response);
+			
+		} 
 	}
 
 	/**

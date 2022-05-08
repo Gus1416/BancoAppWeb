@@ -1,19 +1,23 @@
 package controlador;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import logicadeaccesodedatos.CuentaCRUD;
+import logicadenegocios.Cuenta;
 
 /**
  *
  * @author Gustavo
  */
-@WebServlet(name = "MenuControlador", urlPatterns = {"/MenuControlador"})
-public class MenuControlador extends HttpServlet {
+@WebServlet(name = "OperacionControlador", urlPatterns = {"/OperacionControlador"})
+public class OperacionControlador extends HttpServlet {
+	private static int intentosPin = 2;
 
 
 	// <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
@@ -28,28 +32,45 @@ public class MenuControlador extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 					throws ServletException, IOException {
+
 		String accion;
 		RequestDispatcher dispatcher = null;
 		accion = request.getParameter("accion");
-
-		if (accion == null || accion.isEmpty()) {
-			if (request.getSession().getAttribute("mensaje") == null) {
-				request.getSession().setAttribute("mensaje", "");
+		
+		if (accion.equals("cambiarPin")){
+			dispatcher = request.getRequestDispatcher("Operacion/cambioPin.jsp");		
+			dispatcher.forward(request, response);
+			
+		}else if (accion.equals("actualizarPin")){
+			String numeroCuenta = request.getParameter("numeroCuenta");
+			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
+			String pinActual = request.getParameter("pinActual");
+			String nuevoPin = request.getParameter("nuevoPin");
+			
+			if (cuenta != null && cuenta.getEstatus().equals("activa")) {
+				
+				if (cuenta.getPin().equals(pinActual)) {		
+					cuenta.cambiarPin(nuevoPin);
+					new CuentaCRUD().cambiarPin(cuenta);
+					request.getSession().setAttribute("mensaje", "El pin de la cuenta ha sido actualizado");
+					this.intentosPin = 2;
+					
+				} else {
+					this.intentosPin--;
+					if (this.intentosPin == 0) {
+						cuenta.inactivarCuenta();
+						new CuentaCRUD().cambiarEstatus(cuenta);
+						request.getSession().setAttribute("mensaje", "La cuenta ha sido inactivada");
+						
+					} else {
+						request.getSession().setAttribute("mensaje", "El pin de la cuenta no coincide");
+					}
+				}
+			} else {
+				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
 			}
-			dispatcher = request.getRequestDispatcher("Menu/index.jsp");
-			dispatcher.forward(request, response);
-
-		} else if (accion.equals("registrarCliente") || accion.equals("listarClientes")){
-			dispatcher = request.getRequestDispatcher("/ClienteControlador");
-			dispatcher.forward(request, response);
+			response.sendRedirect("MenuControlador");
 			
-		} else if (accion.equals("registrarCuenta") || accion.equals("listarCuentas")){
-			dispatcher = request.getRequestDispatcher("/CuentaControlador");
-			dispatcher.forward(request, response);
-			
-		} else if (accion.equals("cambiarPin")){
-			dispatcher = request.getRequestDispatcher("/OperacionControlador");
-			dispatcher.forward(request, response);
 		}
 	}
 
