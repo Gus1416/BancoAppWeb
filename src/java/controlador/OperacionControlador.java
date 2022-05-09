@@ -136,6 +136,29 @@ public class OperacionControlador extends HttpServlet {
 				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
 			}
 			response.sendRedirect("MenuControlador");
+
+		} else if (accion.equals("consultarSaldoActualDolares")) {
+			dispatcher = request.getRequestDispatcher("Operacion/consultaSaldoActualDolares.jsp");
+			dispatcher.forward(request, response);
+
+		} else if (accion.equals("verificarConsultaSaldoActualDolares")) {
+			String numeroCuenta = request.getParameter("numeroCuenta");
+			String pin = request.getParameter("pin");
+			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
+
+			if (cuenta != null && cuenta.getEstatus().equals("activa")) {
+				if (validarPin(cuenta, pin)) {
+					TipoCambio tc = new TipoCambio();
+					request.getSession().setAttribute("mensaje", "Estimado usuario el saldo actual de su cuenta es " + String.format("%,.2f", tc.convertirADolares(cuenta.consultarSaldoActual())) + " dólares"
+									+ "<br></br>Para esta conversión se utilizó el tipo de cambio del dólar, precio de compra."
+									+ "<br></br>[Según el BCCR, el tipo de cambio de compra del dólar de hoy es: " + tc.getCompra());
+				} else {
+					request.getSession().setAttribute("mensaje", "El pin de la cuenta es incorrecto");
+				}
+			} else {
+				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
+			}
+			response.sendRedirect("MenuControlador");
 		}
 	}
 

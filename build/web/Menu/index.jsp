@@ -47,6 +47,9 @@
                 <li class="nav-li">
                     <a href="MenuControlador?accion=consultarSaldoActual">Consultar saldo actual</a>
                 </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarSaldoActualDolares">Consultar saldo actual en dólares</a>
+                </li>
             </ul>
         </nav>
         <div class="contenedor">
