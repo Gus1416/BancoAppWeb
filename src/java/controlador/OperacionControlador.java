@@ -179,9 +179,23 @@ public class OperacionControlador extends HttpServlet {
 				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
 			}
 			response.sendRedirect("MenuControlador");
+			
+		} else if (accion.equals("consultarEstatus")){
+			dispatcher = request.getRequestDispatcher("Operacion/consultaEstatus.jsp");
+			dispatcher.forward(request, response);
+
+		} else if (accion.equals("verificarConsultaEstatus")) {
+			String numeroCuenta = request.getParameter("numeroCuenta");
+			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
+			
+			if (cuenta != null) {
+				request.getSession().setAttribute("mensaje", "La cuenta número " + cuenta.getNumeroCuenta() + " tiene estatus de  " + cuenta.getEstatus());
+			}else {
+				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto");
+			}
+			response.sendRedirect("MenuControlador");
 		}
 	}
-
 
 	/**
 	 * Handles the HTTP <code>POST</code> method.

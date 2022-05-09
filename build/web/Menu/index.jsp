@@ -53,6 +53,9 @@
                 <li class="nav-li">
                     <a href="MenuControlador?accion=consultarEstadoCuenta">Consultar estado de cuenta</a>
                 </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarEstatus">Consultar estatus de cuenta</a>
+                </li>
             </ul>
         </nav>
         <div class="contenedor">

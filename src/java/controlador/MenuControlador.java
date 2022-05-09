@@ -50,7 +50,7 @@ public class MenuControlador extends HttpServlet {
 		} else if (accion.equals("cambiarPin") || accion.equals("depositarColones") || accion.equals("depositarDolares") 
 						|| accion.equals("consultarTipoCambioCompra") || accion.equals("consultarTipoCambioVenta") 
 						|| accion.equals("consultarSaldoActual") || accion.equals("consultarSaldoActualDolares")
-						|| accion.equals("consultarEstadoCuenta")){
+						|| accion.equals("consultarEstadoCuenta") || accion.equals("consultarEstatus")){
 			
 			dispatcher = request.getRequestDispatcher("/OperacionControlador");
 			dispatcher.forward(request, response);
