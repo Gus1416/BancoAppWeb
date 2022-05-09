@@ -38,6 +38,9 @@
                 <li class="nav-li">
                     <a href="MenuControlador?accion=depositarDolares">Depositar en dólares</a>
                 </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarTipoCambioCompra">Consultar tipo de cambio de compra</a>
+                </li>
             </ul>
         </nav>
         <div class="contenedor">

@@ -12,6 +12,7 @@ import logicadeaccesodedatos.CuentaCRUD;
 import logicadeaccesodedatos.OperacionCRUD;
 import logicadenegocios.Cuenta;
 import logicadenegocios.Operacion;
+import serviciosexternos.TipoCambio;
 
 /**
  *
@@ -104,6 +105,11 @@ public class OperacionControlador extends HttpServlet {
 			}
 			response.sendRedirect("MenuControlador");
 
+		}else if (accion.equals("consultarTipoCambioCompra")){
+			dispatcher = request.getRequestDispatcher("Operacion/tipoCambioCompra.jsp");
+			TipoCambio tc = new TipoCambio();
+			request.setAttribute("tipoCambioCompra", tc.getCompra());
+			dispatcher.forward(request, response);
 		}
 	}
 
