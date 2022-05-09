@@ -10,10 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import logicadeaccesodedatos.ClienteCRUD;
 import logicadeaccesodedatos.CuentaCRUD;
-import logicadenegocios.Busqueda;
 import logicadenegocios.Cliente;
 import logicadenegocios.Cuenta;
-import logicadenegocios.Persona;
 
 /**
  *
@@ -79,8 +77,7 @@ public class CuentaControlador extends HttpServlet {
 		} else if (accion.equals("cambiarPin")){
 			dispatcher = request.getRequestDispatcher("Cuenta/cambioPin.jsp");
 			request.getSession().setAttribute("intentos", 2);
-			dispatcher.forward(request, response);
-			
+			dispatcher.forward(request, response);	
 		} 
 	}
 

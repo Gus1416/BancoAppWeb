@@ -47,10 +47,9 @@ public class MenuControlador extends HttpServlet {
 			dispatcher = request.getRequestDispatcher("/CuentaControlador");
 			dispatcher.forward(request, response);
 			
-		} else if (accion.equals("cambiarPin") || accion.equals("depositarColones")){
+		} else if (accion.equals("cambiarPin") || accion.equals("depositarColones") || accion.equals("depositarDolares")){
 			dispatcher = request.getRequestDispatcher("/OperacionControlador");
 			dispatcher.forward(request, response);
-
 		}
 	}
 

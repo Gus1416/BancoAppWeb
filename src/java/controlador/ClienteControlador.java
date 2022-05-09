@@ -69,7 +69,6 @@ public class ClienteControlador extends HttpServlet {
 			dispatcher.forward(request, response);
 			
 		} else if (accion.equals("verDetallesCliente")){		
-
 			dispatcher = request.getRequestDispatcher("Cliente/detallesCliente.jsp");		
 			String identificacion = request.getParameter("cliente");
 			Cliente cliente = new ClienteCRUD().consultarCliente(identificacion);

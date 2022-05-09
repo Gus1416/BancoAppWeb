@@ -75,7 +75,6 @@ public class OperacionControlador extends HttpServlet {
 				cuenta.depositarColones(Double.parseDouble(montoDeposito));
 				new CuentaCRUD().actualizarSaldo(cuenta);
 				Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
-				System.out.println(operacion);
 				new OperacionCRUD().registrarOperacion(operacion, numeroCuenta);
 				request.getSession().setAttribute("mensaje", "El depósito ha sido realizado");
 
@@ -83,6 +82,28 @@ public class OperacionControlador extends HttpServlet {
 				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
 			}
 			response.sendRedirect("MenuControlador");
+			
+		} else if (accion.equals("depositarDolares")){
+			dispatcher = request.getRequestDispatcher("Operacion/depositoDolares.jsp");
+			dispatcher.forward(request, response);		
+			
+		} else if (accion.equals("realizarDepositoDolares")){
+			String numeroCuenta = request.getParameter("numeroCuenta");
+			String montoDeposito = request.getParameter("montoDeposito");
+			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
+			
+			if (cuenta != null && cuenta.getEstatus().equals("activa")) {
+				cuenta.depositarDolares(Double.parseDouble(montoDeposito));
+				new CuentaCRUD().actualizarSaldo(cuenta);
+				Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
+				new OperacionCRUD().registrarOperacion(operacion, numeroCuenta);
+				request.getSession().setAttribute("mensaje", "El depósito en dólares ha sido realizado");
+
+			} else {
+				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
+			}
+			response.sendRedirect("MenuControlador");
+
 		}
 	}
 
