@@ -32,6 +32,9 @@
                 <li class="nav-li">
                     <a href="MenuControlador?accion=cambiarPin">Cambiar pin</a>
                 </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=depositarColones">Depositar en colones</a>
+                </li>
             </ul>
         </nav>
         <div class="contenedor">

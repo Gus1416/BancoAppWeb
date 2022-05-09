@@ -9,7 +9,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import logicadeaccesodedatos.CuentaCRUD;
+import logicadeaccesodedatos.OperacionCRUD;
 import logicadenegocios.Cuenta;
+import logicadenegocios.Operacion;
 
 /**
  *
@@ -36,43 +38,54 @@ public class OperacionControlador extends HttpServlet {
 		String accion;
 		RequestDispatcher dispatcher = null;
 		accion = request.getParameter("accion");
-		
-		if (accion.equals("cambiarPin")){
-			dispatcher = request.getRequestDispatcher("Operacion/cambioPin.jsp");		
+
+		if (accion.equals("cambiarPin")) {
+			dispatcher = request.getRequestDispatcher("Operacion/cambioPin.jsp");
 			dispatcher.forward(request, response);
-			
-		}else if (accion.equals("actualizarPin")){
+
+		} else if (accion.equals("actualizarPin")) {
 			String numeroCuenta = request.getParameter("numeroCuenta");
 			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
 			String pinActual = request.getParameter("pinActual");
 			String nuevoPin = request.getParameter("nuevoPin");
-			
+
 			if (cuenta != null && cuenta.getEstatus().equals("activa")) {
-				
-				if (cuenta.getPin().equals(pinActual)) {		
+				if (validarPin(cuenta, pinActual, nuevoPin, request)) {
 					cuenta.cambiarPin(nuevoPin);
 					new CuentaCRUD().cambiarPin(cuenta);
-					request.getSession().setAttribute("mensaje", "El pin de la cuenta ha sido actualizado");
-					this.intentosPin = 2;
-					
-				} else {
-					this.intentosPin--;
-					if (this.intentosPin == 0) {
-						cuenta.inactivarCuenta();
-						new CuentaCRUD().cambiarEstatus(cuenta);
-						request.getSession().setAttribute("mensaje", "La cuenta ha sido inactivada");
-						
-					} else {
-						request.getSession().setAttribute("mensaje", "El pin de la cuenta no coincide");
-					}
+					request.getSession().setAttribute("mensaje", "El pin de la cuenta ha sido actualizado");				
+				} else {			
+					request.getSession().setAttribute("mensaje", "El pin de la cuenta es incorrecto");
 				}
 			} else {
 				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
 			}
 			response.sendRedirect("MenuControlador");
+
+		} else if (accion.equals("depositarColones")){
+			dispatcher = request.getRequestDispatcher("Operacion/depositoColones.jsp");
+			dispatcher.forward(request, response);
 			
+		} else if (accion.equals("realizarDepositoColones")){
+			String numeroCuenta = request.getParameter("numeroCuenta");
+			String montoDeposito = request.getParameter("montoDeposito");
+			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
+			
+			if (cuenta != null && cuenta.getEstatus().equals("activa")) {
+				cuenta.depositarColones(Double.parseDouble(montoDeposito));
+				new CuentaCRUD().actualizarSaldo(cuenta);
+				Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
+				System.out.println(operacion);
+				new OperacionCRUD().registrarOperacion(operacion, numeroCuenta);
+				request.getSession().setAttribute("mensaje", "El depósito ha sido realizado");
+
+			} else {
+				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
+			}
+			response.sendRedirect("MenuControlador");
 		}
 	}
+
 
 	/**
 	 * Handles the HTTP <code>POST</code> method.
@@ -98,4 +111,19 @@ public class OperacionControlador extends HttpServlet {
 		return "Short description";
 	}// </editor-fold>
 
+	
+	private boolean validarPin(Cuenta cuenta, String pinActual, String nuevoPin, HttpServletRequest request) {
+		if (cuenta.getPin().equals(pinActual)) {
+			this.intentosPin = 2;
+			return true;
+		} else {
+			this.intentosPin--;
+			if (this.intentosPin == 0) {
+				cuenta.inactivarCuenta();
+				new CuentaCRUD().cambiarEstatus(cuenta);
+				this.intentosPin = 2;
+			}
+			return false;
+		}
+	}
 }

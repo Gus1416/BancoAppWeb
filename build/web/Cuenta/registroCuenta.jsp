@@ -19,16 +19,19 @@
             <h1 id="titulo">iBanco</h1>
             <ul class="nav-ul">
                 <li class="nav-li">
-                    <a class="nav-a" href="MenuControlador?accion=registrarCliente">Registrar cliente</a>
+                    <a href="MenuControlador?accion=registrarCliente">Registrar cliente</a>
                 </li>
                 <li class="nav-li">
-                    <a class="nav-a" href="MenuControlador?accion=registrarCuenta">Crear cuenta</a>
+                    <a href="MenuControlador?accion=registrarCuenta">Crear cuenta</a>
                 </li>
                 <li class="nav-li">
-                    <a class="nav-a" href="MenuControlador?accion=listarClientes">Listar clientes</a>
+                    <a href="MenuControlador?accion=listarClientes">Listar clientes</a>
                 </li>
                 <li class="nav-li">
-                    <a class="nav-a" href="">Listar cuentas</a>
+                    <a href="MenuControlador?accion=listarCuentas">Listar cuentas</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=cambiarPin">Cambiar pin</a>
                 </li>
             </ul>
         </nav>
