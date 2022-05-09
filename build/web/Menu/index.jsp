@@ -44,6 +44,9 @@
                 <li class="nav-li">
                     <a href="MenuControlador?accion=consultarTipoCambioVenta">Consultar tipo de cambio de venta</a>
                 </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarSaldoActual">Consultar saldo actual</a>
+                </li>
             </ul>
         </nav>
         <div class="contenedor">

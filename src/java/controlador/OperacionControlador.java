@@ -51,7 +51,7 @@ public class OperacionControlador extends HttpServlet {
 			String nuevoPin = request.getParameter("nuevoPin");
 
 			if (cuenta != null && cuenta.getEstatus().equals("activa")) {
-				if (validarPin(cuenta, pinActual, nuevoPin, request)) {
+				if (validarPin(cuenta, pinActual)) {
 					cuenta.cambiarPin(nuevoPin);
 					new CuentaCRUD().cambiarPin(cuenta);
 					request.getSession().setAttribute("mensaje", "El pin de la cuenta ha sido actualizado");				
@@ -116,6 +116,26 @@ public class OperacionControlador extends HttpServlet {
 			TipoCambio tc = new TipoCambio();
 			request.setAttribute("tipoCambioVenta", tc.getVenta());
 			dispatcher.forward(request, response);
+			
+		} else if (accion.equals("consultarSaldoActual")){
+			dispatcher = request.getRequestDispatcher("Operacion/consultaSaldoActual.jsp");
+			dispatcher.forward(request, response);
+			
+		} else if (accion.equals("verificarConsultaSaldoActual")){
+			String numeroCuenta = request.getParameter("numeroCuenta");
+			String pin = request.getParameter("pin");
+			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
+			
+			if (cuenta != null && cuenta.getEstatus().equals("activa")){
+				if (validarPin(cuenta, pin)) {			
+					request.getSession().setAttribute("mensaje", "Estimado usuario el saldo actual de su cuenta es " + cuenta.consultarSaldoActual() + " colones");				
+				} else {			
+					request.getSession().setAttribute("mensaje", "El pin de la cuenta es incorrecto");
+				}
+			} else {
+				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
+			}
+			response.sendRedirect("MenuControlador");
 		}
 	}
 
@@ -145,7 +165,7 @@ public class OperacionControlador extends HttpServlet {
 	}// </editor-fold>
 
 	
-	private boolean validarPin(Cuenta cuenta, String pinActual, String nuevoPin, HttpServletRequest request) {
+	private boolean validarPin(Cuenta cuenta, String pinActual) {
 		if (cuenta.getPin().equals(pinActual)) {
 			this.intentosPin = 2;
 			return true;
