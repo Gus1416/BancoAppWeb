@@ -41,6 +41,9 @@
                 <li class="nav-li">
                     <a href="MenuControlador?accion=consultarTipoCambioCompra">Consultar tipo de cambio de compra</a>
                 </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarTipoCambioVenta">Consultar tipo de cambio de venta</a>
+                </li>
             </ul>
         </nav>
         <div class="contenedor">

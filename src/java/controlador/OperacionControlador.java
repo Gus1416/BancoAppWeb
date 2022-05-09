@@ -110,6 +110,12 @@ public class OperacionControlador extends HttpServlet {
 			TipoCambio tc = new TipoCambio();
 			request.setAttribute("tipoCambioCompra", tc.getCompra());
 			dispatcher.forward(request, response);
+			
+		}else if (accion.equals("consultarTipoCambioVenta")){
+			dispatcher = request.getRequestDispatcher("Operacion/tipoCambioVenta.jsp");
+			TipoCambio tc = new TipoCambio();
+			request.setAttribute("tipoCambioVenta", tc.getVenta());
+			dispatcher.forward(request, response);
 		}
 	}
 
