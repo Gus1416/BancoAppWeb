@@ -159,6 +159,26 @@ public class OperacionControlador extends HttpServlet {
 				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
 			}
 			response.sendRedirect("MenuControlador");
+			
+		} else if (accion.equals("consultarEstadoCuenta")){
+			dispatcher = request.getRequestDispatcher("Operacion/estadoCuenta.jsp");
+			dispatcher.forward(request, response);
+			
+		} else if (accion.equals("verificarConsultaEstadoCuenta")){
+			String numeroCuenta = request.getParameter("numeroCuenta");
+			String pin = request.getParameter("pin");
+			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
+			
+			if (cuenta != null && cuenta.getEstatus().equals("activa")) {
+				if (validarPin(cuenta, pin)) {
+					request.getSession().setAttribute("mensaje", cambiarSaltosLinea(cuenta.consultarEstadoCuenta()));
+				} else {
+					request.getSession().setAttribute("mensaje", "El pin de la cuenta es incorrecto");
+				}
+			} else {
+				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
+			}
+			response.sendRedirect("MenuControlador");
 		}
 	}
 
@@ -201,5 +221,10 @@ public class OperacionControlador extends HttpServlet {
 			}
 			return false;
 		}
+	}
+
+	private String cambiarSaltosLinea(String pTexto) {
+		String textoCambiado = pTexto.replace("\n", "<br></br>");
+		return textoCambiado;
 	}
 }

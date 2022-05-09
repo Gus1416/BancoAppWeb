@@ -50,6 +50,9 @@
                 <li class="nav-li">
                     <a href="MenuControlador?accion=consultarSaldoActualDolares">Consultar saldo actual en dólares</a>
                 </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarEstadoCuenta">Consultar estado de cuenta</a>
+                </li>
             </ul>
         </nav>
         <div class="contenedor">
