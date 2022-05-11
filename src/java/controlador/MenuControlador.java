@@ -31,6 +31,8 @@ public class MenuControlador extends HttpServlet {
 		String accion;
 		RequestDispatcher dispatcher = null;
 		accion = request.getParameter("accion");
+		
+
 
 		if (accion == null || accion.isEmpty()) {
 			if (request.getSession().getAttribute("mensaje") == null) {
@@ -48,10 +50,10 @@ public class MenuControlador extends HttpServlet {
 			dispatcher.forward(request, response);
 			
 		} else if (accion.equals("cambiarPin") || accion.equals("depositarColones") || accion.equals("depositarDolares") 
+						|| accion.equals("retirarColones") || accion.equals("retirarDolares")
 						|| accion.equals("consultarTipoCambioCompra") || accion.equals("consultarTipoCambioVenta") 
 						|| accion.equals("consultarSaldoActual") || accion.equals("consultarSaldoActualDolares")
 						|| accion.equals("consultarEstadoCuenta") || accion.equals("consultarEstatus")){
-			
 			dispatcher = request.getRequestDispatcher("/OperacionControlador");
 			dispatcher.forward(request, response);
 		}

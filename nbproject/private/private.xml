@@ -3,13 +3,11 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Gustavo/OneDrive/Documentos/NetBeansProjects/BancoAppWeb/web/Cliente/listaClientes.jsp</file>
-            <file>file:/C:/Users/Gustavo/OneDrive/Documentos/NetBeansProjects/BancoAppWeb/src/java/controlador/ClienteControlador.java</file>
             <file>file:/C:/Users/Gustavo/OneDrive/Documentos/NetBeansProjects/BancoAppWeb/src/java/controlador/MenuControlador.java</file>
-            <file>file:/C:/Users/Gustavo/OneDrive/Documentos/NetBeansProjects/BancoAppWeb/web/Cuenta/registroCuenta.jsp</file>
             <file>file:/C:/Users/Gustavo/OneDrive/Documentos/NetBeansProjects/BancoAppWeb/web/Menu/index.jsp</file>
-            <file>file:/C:/Users/Gustavo/OneDrive/Documentos/NetBeansProjects/BancoAppWeb/src/java/controlador/CuentaControlador.java</file>
+            <file>file:/C:/Users/Gustavo/OneDrive/Documentos/NetBeansProjects/BancoAppWeb/src/java/controlador/OperacionControlador.java</file>
             <file>file:/C:/Users/Gustavo/OneDrive/Documentos/NetBeansProjects/BancoAppWeb/web/Cuenta/listaCuentas.jsp</file>
+            <file>file:/C:/Users/Gustavo/OneDrive/Documentos/NetBeansProjects/BancoAppWeb/web/Operacion/retiroColones.jsp</file>
         </group>
     </open-files>
 </project-private>

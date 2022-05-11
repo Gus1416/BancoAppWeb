@@ -2,16 +2,23 @@ package controlador;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import logicadeaccesodedatos.ClienteCRUD;
 import logicadeaccesodedatos.CuentaCRUD;
 import logicadeaccesodedatos.OperacionCRUD;
+import logicadenegocios.Cliente;
 import logicadenegocios.Cuenta;
 import logicadenegocios.Operacion;
+import logicadenegocios.PalabraSecreta;
+import logicadevalidacion.FondosInsuficientesExcepcion;
+import serviciosexternos.Sms;
 import serviciosexternos.TipoCambio;
 
 /**
@@ -21,6 +28,8 @@ import serviciosexternos.TipoCambio;
 @WebServlet(name = "OperacionControlador", urlPatterns = {"/OperacionControlador"})
 public class OperacionControlador extends HttpServlet {
 	private static int intentosPin = 2;
+	private static int intentosPalabra = 2;
+	private String palabraSecreta = "";
 
 
 	// <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
@@ -104,6 +113,72 @@ public class OperacionControlador extends HttpServlet {
 				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
 			}
 			response.sendRedirect("MenuControlador");
+			
+				
+		} else if (accion.equals("retirarColones")) {
+
+			dispatcher = request.getRequestDispatcher("Operacion/retiroColones.jsp");
+			
+				//request.getSession().setAttribute("mensaje", "");
+
+			dispatcher.forward(request, response);
+
+			
+		} else if (accion.equals("realizarRetiroColones")){
+			
+			String numeroCuenta = request.getParameter("numeroCuenta");
+			String pin = request.getParameter("pin");
+			String montoRetiro = request.getParameter("montoRetiro");
+			
+			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
+			Cliente cliente = new ClienteCRUD().consultarPropietarioCuenta(numeroCuenta);
+			
+			if (cuenta != null && cuenta.getEstatus().equals("activa")){
+				if (validarPin(cuenta, pin)) {		
+					palabraSecreta = PalabraSecreta.generarPalabraSecreta();
+					Sms.enviarSms("Su palabra secreta es: " + palabraSecreta, cliente.getNumeroTelefono());
+					request.getSession().setAttribute("cuenta", cuenta.getNumeroCuenta());
+					request.getSession().setAttribute("cliente", cliente.getIdentificacion());
+					request.getSession().setAttribute("monto", montoRetiro);
+					request.getSession().setAttribute("mensaje", "Estimado usuario se ha enviado una palabra por mensaje de texto, por favor revise sus mensajes y proceda a digitar la palabra enviada");
+					response.sendRedirect("MenuControlador?accion=retirarColones");
+				} else {
+					request.getSession().setAttribute("mensaje", "El pin de la cuenta es incorrecto");
+					response.sendRedirect("MenuControlador");
+				}
+			} else {
+				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
+				response.sendRedirect("MenuControlador");
+			}
+
+		} else if (accion.equals("verificarPalabraSecreta")){
+			String palabraSecretaDigitada = request.getParameter("palabraSecreta");
+			Cuenta cuenta = new CuentaCRUD().consultarCuenta(request.getParameter("cuenta"));
+			Cliente cliente = new ClienteCRUD().consultarCliente(request.getParameter("cliente"));
+			String montoRetiro = request.getParameter("monto");
+
+			if (validarPalabraSecreta(palabraSecreta, palabraSecretaDigitada, cuenta)) {
+				try {
+					cuenta.retirarColones(Double.parseDouble(montoRetiro));
+					new CuentaCRUD().actualizarSaldo(cuenta);
+					Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
+					new OperacionCRUD().registrarOperacion(operacion, cuenta.getNumeroCuenta());
+					request.getSession().setAttribute("mensaje", "Estimado usuario, el monto de este retiro es " + montoRetiro + " colones."
+									+ "<br></br> [El monto cobrado por concepto de comisión fue de " + operacion.getMontoComision() + " colones"
+													+ ", que fueron rebajados automáticamente de su saldo actual]");
+					response.sendRedirect("MenuControlador");
+
+				} catch (FondosInsuficientesExcepcion ex) {
+					request.getSession().setAttribute("mensaje", "No hay suficientes fondos para realizar la operación");
+					response.sendRedirect("MenuControlador");
+				}
+
+			} else {
+				request.getSession().setAttribute("mensaje", "La palabra secreta es incorrecta");
+				response.sendRedirect("MenuControlador");
+			}
+
+
 
 		}else if (accion.equals("consultarTipoCambioCompra")){
 			dispatcher = request.getRequestDispatcher("Operacion/tipoCambioCompra.jsp");
@@ -232,6 +307,21 @@ public class OperacionControlador extends HttpServlet {
 				cuenta.inactivarCuenta();
 				new CuentaCRUD().cambiarEstatus(cuenta);
 				this.intentosPin = 2;
+			}
+			return false;
+		}
+	}
+	
+	private boolean validarPalabraSecreta(String pPalabraEnviada, String pPalabraDigitada, Cuenta cuenta){
+		if (pPalabraEnviada.equals(pPalabraDigitada)) {
+			this.intentosPalabra = 2;
+			return true;
+		} else {
+			this.intentosPalabra--;
+			if (this.intentosPalabra == 0) {
+				cuenta.inactivarCuenta();
+				new CuentaCRUD().cambiarEstatus(cuenta);
+				this.intentosPalabra = 2;
 			}
 			return false;
 		}

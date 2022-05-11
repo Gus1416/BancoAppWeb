@@ -36,7 +36,7 @@
         
         <div class="contenedor">
             
-            <h2>Cambio de pin</h2>
+            <h2>Depósito en colones</h2>
 
             <form class="reg-form" action="OperacionControlador?accion=realizarDepositoColones" method="POST" autocomplete="off">
 
