@@ -54,7 +54,7 @@
                 </div>
                 
                 <div class="form-input-container">
-                    <label class="form-label">Monto de depósito</label>
+                    <label class="form-label">Monto de retiro</label>
                     <input class="form-input"  id="montoRetiro" name="montoRetiro" type="number" required/>
                 </div>
 
@@ -62,7 +62,7 @@
 
             </form>
             
-            <h3><br><br><br><%out.print(session.getAttribute("mensaje"));%></h3>
+            <h3><br><br><br><%out.print(session.getAttribute("mensajeTexto"));%></h3>
             
             <form class="reg-form" action="OperacionControlador?accion=verificarPalabraSecreta&cuenta=<%out.print(session.getAttribute("cuenta"));%>&cliente=<%out.print(session.getAttribute("cliente"));%>&monto=<%out.print(session.getAttribute("monto"));%>" method="POST" autocomplete="off">
 

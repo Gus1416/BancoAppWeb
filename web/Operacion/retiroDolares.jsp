@@ -1,11 +1,10 @@
 <%-- 
-    Document   : retiroColones
-    Created on : 9 may. 2022, 14:00:31
+    Document   : retiroDolares
+    Created on : 12 may. 2022, 09:41:41
     Author     : Gustavo
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@taglib  prefix="c" uri="http://java.sun.com/jsp/jstl/core"  %>
 <!DOCTYPE html>
 <html>
     <head>
@@ -39,7 +38,7 @@
             
             <h2>Retiro en colones</h2>
 
-            <form class="reg-form" action="OperacionControlador?accion=realizarRetiroColones" method="POST" autocomplete="off">
+            <form class="reg-form" action="OperacionControlador?accion=realizarRetiroDolares" method="POST" autocomplete="off">
 
                 <div class="form-input-container">
                     <label class="form-label">Número de cuenta</label>
@@ -64,19 +63,18 @@
             
             <h3><br><br><br><%out.print(session.getAttribute("mensajeTexto"));%></h3>
             
-            <form class="reg-form" action="OperacionControlador?accion=verificarPalabraSecreta&cuenta=<%out.print(session.getAttribute("cuenta"));%>&cliente=<%out.print(session.getAttribute("cliente"));%>&monto=<%out.print(session.getAttribute("monto"));%>" method="POST" autocomplete="off">
+            <form class="reg-form" action="OperacionControlador?accion=verificarPalabraSecretaDolares&cuenta=<%out.print(session.getAttribute("cuenta"));%>&cliente=<%out.print(session.getAttribute("cliente"));%>&monto=<%out.print(session.getAttribute("monto"));%>" method="POST" autocomplete="off">
 
                 <div class="form-input-container">
                     <label class="form-label">Palabra secreta</label>
                     <input class="form-input"  id="palabraSecreta" name="palabraSecreta" type="text" required/>
                 </div>
 
-                <button id="verificarPalabraSecreta" name="verificarPalabraSecreta" type="submit">Verificar palabra secreta</button>
+                <button id="verificarPalabraSecretaDolares" name="verificarPalabraSecretaDolares" type="submit">Verificar palabra secreta</button>
 
             </form>
 
-            
-
+     
         </div>
     </body>
 </html>

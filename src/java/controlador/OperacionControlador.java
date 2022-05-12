@@ -1,9 +1,6 @@
 package controlador;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -21,151 +18,115 @@ import logicadevalidacion.FondosInsuficientesExcepcion;
 import serviciosexternos.Sms;
 import serviciosexternos.TipoCambio;
 
-/**
- *
- * @author Gustavo
- */
+
 @WebServlet(name = "OperacionControlador", urlPatterns = {"/OperacionControlador"})
 public class OperacionControlador extends HttpServlet {
-	private static int intentosPin = 2;
-	private static int intentosPalabra = 2;
-	private String palabraSecreta = "";
+	private int intentos = 2;
+	private static String palabraSecreta = "";
+	private RequestDispatcher dispatcher = null;
+	HttpServletRequest request;
+	
+	Cuenta cuenta = new Cuenta();
+	CuentaCRUD cuentaCrud = new CuentaCRUD();
 
 
-	// <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-	/**
-	 * Handles the HTTP <code>GET</code> method.
-	 *
-	 * @param request servlet request
-	 * @param response servlet response
-	 * @throws ServletException if a servlet-specific error occurs
-	 * @throws IOException if an I/O error occurs
-	 */
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-					throws ServletException, IOException {
-
-		String accion;
-		RequestDispatcher dispatcher = null;
-		accion = request.getParameter("accion");
-
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		this.request = request;
+		String accion = request.getParameter("accion");
+		
 		if (accion.equals("cambiarPin")) {
-			dispatcher = request.getRequestDispatcher("Operacion/cambioPin.jsp");
-			dispatcher.forward(request, response);
-
+			enviarSolicitud(request, response, "Operacion/cambioPin.jsp");
+			
+			
 		} else if (accion.equals("actualizarPin")) {
 			String numeroCuenta = request.getParameter("numeroCuenta");
-			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
+			cuenta = cuentaCrud.consultarCuenta(numeroCuenta);
 			String pinActual = request.getParameter("pinActual");
 			String nuevoPin = request.getParameter("nuevoPin");
-
-			if (cuenta != null && cuenta.getEstatus().equals("activa")) {
-				if (validarPin(cuenta, pinActual)) {
-					cuenta.cambiarPin(nuevoPin);
-					new CuentaCRUD().cambiarPin(cuenta);
-					request.getSession().setAttribute("mensaje", "El pin de la cuenta ha sido actualizado");				
-				} else {			
-					request.getSession().setAttribute("mensaje", "El pin de la cuenta es incorrecto");
-				}
-			} else {
-				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
+			
+			if (sePermiteOperacion(cuenta) && validarPin(cuenta.getPin(), pinActual)) {
+				cuenta.cambiarPin(nuevoPin);
+				cuentaCrud.cambiarPin(cuenta);
+				request.getSession().setAttribute("mensaje", "El pin de la cuenta ha sido actualizado");
 			}
 			response.sendRedirect("MenuControlador");
+		
+		} else if (accion.equals("depositarColones")) {
+			enviarSolicitud(request, response, "Operacion/depositoColones.jsp");
 
-		} else if (accion.equals("depositarColones")){
-			dispatcher = request.getRequestDispatcher("Operacion/depositoColones.jsp");
-			dispatcher.forward(request, response);
 			
 		} else if (accion.equals("realizarDepositoColones")){
 			String numeroCuenta = request.getParameter("numeroCuenta");
 			String montoDeposito = request.getParameter("montoDeposito");
-			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
+			cuenta = cuentaCrud.consultarCuenta(numeroCuenta);
 			
-			if (cuenta != null && cuenta.getEstatus().equals("activa")) {
+			if (sePermiteOperacion(cuenta)) {
 				cuenta.depositarColones(Double.parseDouble(montoDeposito));
-				new CuentaCRUD().actualizarSaldo(cuenta);
+				cuentaCrud.actualizarSaldo(cuenta);
 				Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
 				new OperacionCRUD().registrarOperacion(operacion, numeroCuenta);
 				request.getSession().setAttribute("mensaje", "El depósito ha sido realizado");
-
-			} else {
-				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
 			}
 			response.sendRedirect("MenuControlador");
+						
+		} else if (accion.equals("depositarDolares")) {
+			enviarSolicitud(request, response, "Operacion/depositoDolares.jsp");
 			
-		} else if (accion.equals("depositarDolares")){
-			dispatcher = request.getRequestDispatcher("Operacion/depositoDolares.jsp");
-			dispatcher.forward(request, response);		
 			
 		} else if (accion.equals("realizarDepositoDolares")){
 			String numeroCuenta = request.getParameter("numeroCuenta");
 			String montoDeposito = request.getParameter("montoDeposito");
-			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
+			cuenta = cuentaCrud.consultarCuenta(numeroCuenta);
 			
-			if (cuenta != null && cuenta.getEstatus().equals("activa")) {
+			if (sePermiteOperacion(cuenta)) {
 				cuenta.depositarDolares(Double.parseDouble(montoDeposito));
-				new CuentaCRUD().actualizarSaldo(cuenta);
+				cuentaCrud.actualizarSaldo(cuenta);
 				Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
 				new OperacionCRUD().registrarOperacion(operacion, numeroCuenta);
 				request.getSession().setAttribute("mensaje", "El depósito en dólares ha sido realizado");
-
-			} else {
-				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
 			}
 			response.sendRedirect("MenuControlador");
-			
 				
-		} else if (accion.equals("retirarColones")) {
-
-			dispatcher = request.getRequestDispatcher("Operacion/retiroColones.jsp");
 			
-				//request.getSession().setAttribute("mensaje", "");
-
-			dispatcher.forward(request, response);
-
+		} else if (accion.equals("retirarColones")) {	
+			enviarSolicitud(request, response, "Operacion/retiroColones.jsp");
 			
-		} else if (accion.equals("realizarRetiroColones")){
 			
+		} else if (accion.equals("realizarRetiroColones")){	
 			String numeroCuenta = request.getParameter("numeroCuenta");
 			String pin = request.getParameter("pin");
 			String montoRetiro = request.getParameter("montoRetiro");
 			
-			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
+			cuenta = cuentaCrud.consultarCuenta(numeroCuenta);
 			Cliente cliente = new ClienteCRUD().consultarPropietarioCuenta(numeroCuenta);
 			
-			if (cuenta != null && cuenta.getEstatus().equals("activa")){
-				if (validarPin(cuenta, pin)) {		
-					palabraSecreta = PalabraSecreta.generarPalabraSecreta();
-					Sms.enviarSms("Su palabra secreta es: " + palabraSecreta, cliente.getNumeroTelefono());
-					request.getSession().setAttribute("cuenta", cuenta.getNumeroCuenta());
-					request.getSession().setAttribute("cliente", cliente.getIdentificacion());
-					request.getSession().setAttribute("monto", montoRetiro);
-					request.getSession().setAttribute("mensaje", "Estimado usuario se ha enviado una palabra por mensaje de texto, por favor revise sus mensajes y proceda a digitar la palabra enviada");
-					response.sendRedirect("MenuControlador?accion=retirarColones");
-				} else {
-					request.getSession().setAttribute("mensaje", "El pin de la cuenta es incorrecto");
-					response.sendRedirect("MenuControlador");
-				}
-			} else {
-				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
-				response.sendRedirect("MenuControlador");
+			if (sePermiteOperacion(cuenta) && validarPin(cuenta.getPin(), pin)) {
+				palabraSecreta = PalabraSecreta.generarPalabraSecreta();
+				Sms.enviarSms("Su palabra secreta es: " + palabraSecreta, cliente.getNumeroTelefono());
+				request.getSession().setAttribute("cuenta", cuenta.getNumeroCuenta());
+				request.getSession().setAttribute("cliente", cliente.getIdentificacion());
+				request.getSession().setAttribute("monto", montoRetiro);
+				request.getSession().setAttribute("mensajeTexto", "Estimado usuario se ha enviado una palabra por mensaje de texto, por favor revise sus mensajes y proceda a digitar la palabra enviada");
 			}
+			response.sendRedirect("MenuControlador?accion=retirarColones");
 
+			
 		} else if (accion.equals("verificarPalabraSecreta")){
 			String palabraSecretaDigitada = request.getParameter("palabraSecreta");
-			Cuenta cuenta = new CuentaCRUD().consultarCuenta(request.getParameter("cuenta"));
+			cuenta = cuentaCrud.consultarCuenta(request.getParameter("cuenta"));
 			Cliente cliente = new ClienteCRUD().consultarCliente(request.getParameter("cliente"));
 			String montoRetiro = request.getParameter("monto");
 
 			if (validarPalabraSecreta(palabraSecreta, palabraSecretaDigitada, cuenta)) {
 				try {
 					cuenta.retirarColones(Double.parseDouble(montoRetiro));
-					new CuentaCRUD().actualizarSaldo(cuenta);
+					cuentaCrud.actualizarSaldo(cuenta);
 					Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
 					new OperacionCRUD().registrarOperacion(operacion, cuenta.getNumeroCuenta());
 					request.getSession().setAttribute("mensaje", "Estimado usuario, el monto de este retiro es " + montoRetiro + " colones."
 									+ "<br></br> [El monto cobrado por concepto de comisión fue de " + operacion.getMontoComision() + " colones"
-													+ ", que fueron rebajados automáticamente de su saldo actual]");
+									+ ", que fueron rebajados automáticamente de su saldo actual]");
 					response.sendRedirect("MenuControlador");
 
 				} catch (FondosInsuficientesExcepcion ex) {
@@ -177,93 +138,133 @@ public class OperacionControlador extends HttpServlet {
 				request.getSession().setAttribute("mensaje", "La palabra secreta es incorrecta");
 				response.sendRedirect("MenuControlador");
 			}
+			
+	///////////////////////
+	} else if (accion.equals("retirarDolares")) {	
+			enviarSolicitud(request, response, "Operacion/retiroDolares.jsp");
+			
 
+		} else if (accion.equals("realizarRetiroDolares")){	
+			String numeroCuenta = request.getParameter("numeroCuenta");
+			String pin = request.getParameter("pin");
+			String montoRetiro = request.getParameter("montoRetiro");
+			
+			cuenta = cuentaCrud.consultarCuenta(numeroCuenta);
+			Cliente cliente = new ClienteCRUD().consultarPropietarioCuenta(numeroCuenta);
+			
+			if (sePermiteOperacion(cuenta) && validarPin(cuenta.getPin(), pin)) {
+				palabraSecreta = PalabraSecreta.generarPalabraSecreta();
+				Sms.enviarSms("Su palabra secreta es: " + palabraSecreta, cliente.getNumeroTelefono());
+				request.getSession().setAttribute("cuenta", cuenta.getNumeroCuenta());
+				request.getSession().setAttribute("cliente", cliente.getIdentificacion());
+				request.getSession().setAttribute("monto", montoRetiro);
+				request.setAttribute("mensaje", "Estimado usuario se ha enviado una palabra por mensaje de texto, por favor revise sus mensajes y proceda a digitar la palabra enviada");
+			}
+			response.sendRedirect("MenuControlador?accion=retirarDolares");
 
-
-		}else if (accion.equals("consultarTipoCambioCompra")){
-			dispatcher = request.getRequestDispatcher("Operacion/tipoCambioCompra.jsp");
+			
+		} else if (accion.equals("verificarPalabraSecretaDolares")){
+			String palabraSecretaDigitada = request.getParameter("palabraSecreta");
+			cuenta = cuentaCrud.consultarCuenta(request.getParameter("cuenta"));
+			Cliente cliente = new ClienteCRUD().consultarCliente(request.getParameter("cliente"));
+			String montoRetiro = request.getParameter("monto");
 			TipoCambio tc = new TipoCambio();
-			request.setAttribute("tipoCambioCompra", tc.getCompra());
-			dispatcher.forward(request, response);
+
+			if (validarPalabraSecreta(palabraSecreta, palabraSecretaDigitada, cuenta)) {
+				try {
+					cuenta.retirarDolares(Double.parseDouble(montoRetiro));
+					cuentaCrud.actualizarSaldo(cuenta);
+					Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
+					System.out.println("fasdfasdfasfdasfasdfasfda" + operacion.getMoneda());
+					new OperacionCRUD().registrarOperacion(operacion, cuenta.getNumeroCuenta());
+					request.getSession().setAttribute("mensaje", "Estimado usuario, el monto de este retiro es " + montoRetiro + " dólares."
+									+ "<br></br>  [Según el BCCR, el tipo de cambio de venta del dólar de hoy es: " + tc.getVenta() + "]"
+									+ "<br></br> [El monto equivalente de su retiro es " + tc.convertirAColones(Double.parseDouble(montoRetiro)) + "colones]"
+									+ "<br></br> [El monto cobrado por concepto de comisión fue de " + operacion.getMontoComision() + " colones"
+									+ ", que fueron rebajados automáticamente de su saldo actual]");
+					response.sendRedirect("MenuControlador");
+
+				} catch (FondosInsuficientesExcepcion ex) {
+					request.getSession().setAttribute("mensaje", "No hay suficientes fondos para realizar la operación");
+					response.sendRedirect("MenuControlador");
+				}
+
+			} else {
+				request.getSession().setAttribute("mensaje", "La palabra secreta es incorrecta");
+				response.sendRedirect("MenuControlador");
+			}
+	//////////////////////
+
+			
+		}else if (accion.equals("consultarTipoCambioCompra")){
+			TipoCambio tc = new TipoCambio();
+			request.setAttribute("tipoCambioCompra", tc.getCompra());	
+			enviarSolicitud(request, response, "Operacion/tipoCambioCompra.jsp");
+			
 			
 		}else if (accion.equals("consultarTipoCambioVenta")){
-			dispatcher = request.getRequestDispatcher("Operacion/tipoCambioVenta.jsp");
 			TipoCambio tc = new TipoCambio();
 			request.setAttribute("tipoCambioVenta", tc.getVenta());
-			dispatcher.forward(request, response);
+			enviarSolicitud(request, response, "Operacion/tipoCambioVenta.jsp");
+			
 			
 		} else if (accion.equals("consultarSaldoActual")){
-			dispatcher = request.getRequestDispatcher("Operacion/consultaSaldoActual.jsp");
-			dispatcher.forward(request, response);
+			enviarSolicitud(request, response, "Operacion/consultaSaldoActual.jsp");
+			
 			
 		} else if (accion.equals("verificarConsultaSaldoActual")){
 			String numeroCuenta = request.getParameter("numeroCuenta");
 			String pin = request.getParameter("pin");
-			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
-			
-			if (cuenta != null && cuenta.getEstatus().equals("activa")){
-				if (validarPin(cuenta, pin)) {			
-					request.getSession().setAttribute("mensaje", "Estimado usuario el saldo actual de su cuenta es " + cuenta.consultarSaldoActual() + " colones");				
-				} else {			
-					request.getSession().setAttribute("mensaje", "El pin de la cuenta es incorrecto");
-				}
-			} else {
-				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
+			cuenta = cuentaCrud.consultarCuenta(numeroCuenta);
+
+			if (sePermiteOperacion(cuenta) && validarPin(cuenta.getPin(), pin)) {
+				request.getSession().setAttribute("mensaje", "Estimado usuario el saldo actual de su cuenta es " + cuenta.consultarSaldoActual() + " colones");
 			}
 			response.sendRedirect("MenuControlador");
 
-		} else if (accion.equals("consultarSaldoActualDolares")) {
-			dispatcher = request.getRequestDispatcher("Operacion/consultaSaldoActualDolares.jsp");
-			dispatcher.forward(request, response);
 
+		} else if (accion.equals("consultarSaldoActualDolares")) {
+			enviarSolicitud(request, response, "Operacion/consultaSaldoActualDolares.jsp");
+					
+			
 		} else if (accion.equals("verificarConsultaSaldoActualDolares")) {
 			String numeroCuenta = request.getParameter("numeroCuenta");
 			String pin = request.getParameter("pin");
-			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
+			cuenta = cuentaCrud.consultarCuenta(numeroCuenta);
 
-			if (cuenta != null && cuenta.getEstatus().equals("activa")) {
-				if (validarPin(cuenta, pin)) {
+			if (sePermiteOperacion(cuenta) && validarPin(cuenta.getPin(), pin)) {
 					TipoCambio tc = new TipoCambio();
 					request.getSession().setAttribute("mensaje", "Estimado usuario el saldo actual de su cuenta es " + String.format("%,.2f", tc.convertirADolares(cuenta.consultarSaldoActual())) + " dólares"
 									+ "<br></br>Para esta conversión se utilizó el tipo de cambio del dólar, precio de compra."
 									+ "<br></br>[Según el BCCR, el tipo de cambio de compra del dólar de hoy es: " + tc.getCompra());
-				} else {
-					request.getSession().setAttribute("mensaje", "El pin de la cuenta es incorrecto");
-				}
-			} else {
-				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
 			}
 			response.sendRedirect("MenuControlador");
 			
+			
 		} else if (accion.equals("consultarEstadoCuenta")){
-			dispatcher = request.getRequestDispatcher("Operacion/estadoCuenta.jsp");
-			dispatcher.forward(request, response);
+			enviarSolicitud(request, response, "Operacion/estadoCuenta.jsp");
+					
 			
 		} else if (accion.equals("verificarConsultaEstadoCuenta")){
 			String numeroCuenta = request.getParameter("numeroCuenta");
 			String pin = request.getParameter("pin");
-			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
-			
-			if (cuenta != null && cuenta.getEstatus().equals("activa")) {
-				if (validarPin(cuenta, pin)) {
-					request.getSession().setAttribute("mensaje", cambiarSaltosLinea(cuenta.consultarEstadoCuenta()));
-				} else {
-					request.getSession().setAttribute("mensaje", "El pin de la cuenta es incorrecto");
-				}
-			} else {
-				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto o la cuenta se encuentra inactiva");
+			cuenta = cuentaCrud.consultarCuenta(numeroCuenta);
+
+			if (sePermiteOperacion(cuenta) && validarPin(cuenta.getPin(), pin)) {
+				request.getSession().setAttribute("mensaje", cambiarSaltosLinea(cuenta.consultarEstadoCuenta()));
 			}
 			response.sendRedirect("MenuControlador");
+					
 			
 		} else if (accion.equals("consultarEstatus")){
-			dispatcher = request.getRequestDispatcher("Operacion/consultaEstatus.jsp");
-			dispatcher.forward(request, response);
-
+			enviarSolicitud(request, response, "Operacion/consultaEstatus.jsp");
+			
+			
 		} else if (accion.equals("verificarConsultaEstatus")) {
 			String numeroCuenta = request.getParameter("numeroCuenta");
-			Cuenta cuenta = new CuentaCRUD().consultarCuenta(numeroCuenta);
+			cuenta = cuentaCrud.consultarCuenta(numeroCuenta);
 			
-			if (cuenta != null) {
+			if (esCuentaRegistrada(cuenta)) {
 				request.getSession().setAttribute("mensaje", "La cuenta número " + cuenta.getNumeroCuenta() + " tiene estatus de  " + cuenta.getEstatus());
 			}else {
 				request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto");
@@ -272,59 +273,83 @@ public class OperacionControlador extends HttpServlet {
 		}
 	}
 
-	/**
-	 * Handles the HTTP <code>POST</code> method.
-	 *
-	 * @param request servlet request
-	 * @param response servlet response
-	 * @throws ServletException if a servlet-specific error occurs
-	 * @throws IOException if an I/O error occurs
-	 */
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 					throws ServletException, IOException {
 		doGet(request, response);
 	}
 
-	/**
-	 * Returns a short description of the servlet.
-	 *
-	 * @return a String containing servlet description
-	 */
 	@Override
 	public String getServletInfo() {
 		return "Short description";
-	}// </editor-fold>
-
+	}
 	
-	private boolean validarPin(Cuenta cuenta, String pinActual) {
-		if (cuenta.getPin().equals(pinActual)) {
-			this.intentosPin = 2;
+	
+	private boolean sePermiteOperacion(Cuenta pCuenta){
+		if (!esCuentaRegistrada(pCuenta)) {
+			request.getSession().setAttribute("mensaje", "El número de cuenta no corresponde a ninguna cuenta registrada");
+			return false;
+		}
+		if (!esCuentaActiva(pCuenta)) {
+			request.getSession().setAttribute("mensaje", "La cuenta se encuenta inactiva");
+			return false;
+		}	
+		return true;
+	}
+	
+	private boolean esCuentaRegistrada(Cuenta pCuenta){
+		return pCuenta != null;
+	}
+	
+	private boolean esCuentaActiva(Cuenta pCuenta){
+		return pCuenta.getEstatus().equals("activa");
+	}
+	
+	private void enviarSolicitud (HttpServletRequest request, HttpServletResponse response, String pRuta) throws ServletException, IOException {
+		dispatcher = request.getRequestDispatcher(pRuta);
+		dispatcher.forward(request, response);
+	}
+	
+	private boolean validarPin(String pinCuenta, String pinAComparar) {
+		if (pinCuenta.equals(pinAComparar)) {
+			gestionarIntentosFallidos(true);
+			return true;
+		} else {	
+			request.getSession().setAttribute("mensaje", "El pin ingresado es incorrecto");
+			gestionarIntentosFallidos(false);
+			return false;
+		}
+	}
+
+	private boolean validarPalabraSecreta(String pPalabraEnviada, String pPalabraDigitada, Cuenta cuenta){
+		if (pPalabraEnviada.equals(pPalabraDigitada)) {
+			this.intentos= 2;
 			return true;
 		} else {
-			this.intentosPin--;
-			if (this.intentosPin == 0) {
+			this.intentos--;
+			if (this.intentos == 0) {
 				cuenta.inactivarCuenta();
-				new CuentaCRUD().cambiarEstatus(cuenta);
-				this.intentosPin = 2;
+				cuentaCrud.cambiarEstatus(cuenta);
+				this.intentos = 2;
 			}
 			return false;
 		}
 	}
 	
-	private boolean validarPalabraSecreta(String pPalabraEnviada, String pPalabraDigitada, Cuenta cuenta){
-		if (pPalabraEnviada.equals(pPalabraDigitada)) {
-			this.intentosPalabra = 2;
-			return true;
-		} else {
-			this.intentosPalabra--;
-			if (this.intentosPalabra == 0) {
-				cuenta.inactivarCuenta();
-				new CuentaCRUD().cambiarEstatus(cuenta);
-				this.intentosPalabra = 2;
+	private void gestionarIntentosFallidos(boolean pIntentoCorrecto){
+		if (!pIntentoCorrecto){
+			this.intentos--;
+			if (this.intentos == 0){
+				inactivarCuentaPorIntentosFallidos();
 			}
-			return false;
+		} else {
+			this.intentos = 2;
 		}
+	}
+	
+	private void inactivarCuentaPorIntentosFallidos() {
+		cuenta.inactivarCuenta();
+		cuentaCrud.cambiarEstatus(cuenta);
 	}
 
 	private String cambiarSaltosLinea(String pTexto) {
