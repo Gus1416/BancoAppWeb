@@ -1,6 +1,6 @@
 <%-- 
-    Document   : tipoCambioCompra
-    Created on : 8 may. 2022, 21:49:50
+    Document   : comisionesCuenta
+    Created on : 13 may. 2022, 14:54:52
     Author     : Gustavo
 --%>
 
@@ -37,14 +37,27 @@
                 </li>
             </ul>
         </nav>
-        
+
         <div class="contenedor">
-            <h2>Tipo de cambio actual para la compra de dólares</h2>
+            <h2>Ganancias por comisiones totalizado</h2>
             <br /> <br />
-            
-            <h3>Compra: CRC <%out.print(request.getAttribute("tipoCambioCompra"));%></h3>
-            
+
+            <form class="reg-form" action="OperacionControlador?accion=verificarConsultaComisionesCuenta" method="POST" autocomplete="off">
+
+                <div class="form-input-container">
+                    <label class="form-label">Número de cuenta</label>
+                    <input class="form-input"  id="numeroCuenta" name="numeroCuenta" type="text" required/>
+                </div>
+
+                <button id=verificarConsultaComisionesCuenta" name="verificarConsultaComisionesCuenta" type="submit">Consultar</button>
+
+            </form>
+
+            <h3>Total de comisiones: <%out.print(request.getAttribute("totalComisionesCuenta"));%> colones</h3>
+            <h3>Comisiones por depósitos: <%out.print(request.getAttribute("comisionesDepositosCuenta"));%> colones</h3>
+            <h3>Comisiones por retiros: <%out.print(request.getAttribute("comisionesRetirosCuenta"));%> colones</h3>
+
         </div>
 
-    </body>
+
 </html>

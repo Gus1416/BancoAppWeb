@@ -1,6 +1,6 @@
 <%-- 
-    Document   : tipoCambioCompra
-    Created on : 8 may. 2022, 21:49:50
+    Document   : totalComisiones
+    Created on : 13 may. 2022, 13:43:34
     Author     : Gustavo
 --%>
 
@@ -39,12 +39,12 @@
         </nav>
         
         <div class="contenedor">
-            <h2>Tipo de cambio actual para la compra de dólares</h2>
+            <h2>Ganancias por comisiones totalizado</h2>
             <br /> <br />
             
-            <h3>Compra: CRC <%out.print(request.getAttribute("tipoCambioCompra"));%></h3>
+            <h3>Total de comisiones: <%out.print(request.getAttribute("totalComisiones"));%> colones</h3>
+            <h3>Comisiones por depósitos: <%out.print(request.getAttribute("comisionesDepositos"));%> colones</h3>
+            <h3>Comisiones por retiros: <%out.print(request.getAttribute("comisionesRetiros"));%> colones</h3>
             
         </div>
-
-    </body>
 </html>

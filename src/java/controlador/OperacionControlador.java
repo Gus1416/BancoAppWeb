@@ -1,6 +1,7 @@
 package controlador;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -18,7 +19,6 @@ import logicadevalidacion.FondosInsuficientesExcepcion;
 import serviciosexternos.Sms;
 import serviciosexternos.TipoCambio;
 
-
 @WebServlet(name = "OperacionControlador", urlPatterns = {"/OperacionControlador"})
 public class OperacionControlador extends HttpServlet {
 	private int intentos = 2;
@@ -29,8 +29,6 @@ public class OperacionControlador extends HttpServlet {
 	Cuenta cuenta = new Cuenta();
 	CuentaCRUD cuentaCrud = new CuentaCRUD();
 
-
-	
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		this.request = request;
@@ -142,9 +140,22 @@ public class OperacionControlador extends HttpServlet {
 			String numeroCuenta = request.getParameter("numeroCuenta");	
 			verificarConsultaEstatus(numeroCuenta);
 			response.sendRedirect("MenuControlador");
+			
+		} else if (accion.equals("consultarTotalComisiones")) {
+			consultarTotalComisiones();
+			enviarSolicitud(request, response, "Operacion/totalComisiones.jsp");
+			
+		}else if (accion.equals("consultarComisionesCuenta")) {
+			enviarSolicitud(request, response, "Operacion/comisionesCuenta.jsp");
+		
+		}else if (accion.equals("verificarConsultaComisionesCuenta")) {
+			String numeroCuenta = request.getParameter("numeroCuenta");
+			consultarComisionesCuenta(numeroCuenta);
+			enviarSolicitud(request, response, "Operacion/totalComisiones.jsp");
 		}
 	}
 
+	
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 					throws ServletException, IOException {
@@ -158,6 +169,7 @@ public class OperacionControlador extends HttpServlet {
 	
 	private void actualizarPin(String pNumeroCuenta, String pinActual, String pNuevoPin) {
 		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
+		
 		if (sePermiteOperacion(cuenta) && validarPin(cuenta.getPin(), pinActual)) {
 			cuenta.cambiarPin(pNuevoPin);
 			cuentaCrud.cambiarPin(cuenta);
@@ -167,6 +179,7 @@ public class OperacionControlador extends HttpServlet {
 	
 	private void realizarDepositoColones(String pNumeroCuenta, double pMontoDeposito) {
 		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
+		
 		if (sePermiteOperacion(cuenta)) {
 			cuenta.depositarColones(pMontoDeposito);
 			cuentaCrud.actualizarSaldo(cuenta);
@@ -298,6 +311,34 @@ public class OperacionControlador extends HttpServlet {
 		} else {
 			request.getSession().setAttribute("mensaje", "El número de la cuenta es incorrecto");
 		}
+	}
+	
+	private void consultarComisionesCuenta(String pNumeroCuenta){
+		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
+		if (sePermiteOperacion(cuenta)) {
+			double comisionesDepositos =  cuenta.calcularTotalComisionesDepositos();
+			double comisionesRetiros = cuenta.calcularTotalComisionesRetiros();
+			double totalComisiones = cuenta.calcularTotalComisiones();	
+			request.setAttribute("totalComisiones", String.format("%,.2f", totalComisiones));
+			request.setAttribute("comisionesDepositos", String.format("%,.2f",comisionesDepositos));
+			request.setAttribute("comisionesRetiros", String.format("%,.2f", comisionesRetiros));
+		}
+	}
+	
+	private void consultarTotalComisiones(){
+		ArrayList<Cuenta> cuentas = cuentaCrud.consultarCuentas();
+		double comisionesDepositos = 0.0;
+		double comisionesRetiros = 0.0;
+		double totalComisiones = 0.0;
+		
+		for (Cuenta cuenta : cuentas){
+			totalComisiones += cuenta.calcularTotalComisiones();
+			comisionesDepositos += cuenta.calcularTotalComisionesDepositos();
+			comisionesRetiros += cuenta.calcularTotalComisionesRetiros();
+		}
+		request.setAttribute("totalComisiones", String.format("%,.2f", totalComisiones));
+		request.setAttribute("comisionesDepositos", String.format("%,.2f",comisionesDepositos));
+		request.setAttribute("comisionesRetiros", String.format("%,.2f", comisionesRetiros));
 	}
 	
 	private boolean sePermiteOperacion(Cuenta pCuenta){
