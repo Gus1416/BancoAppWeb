@@ -95,7 +95,26 @@ public class OperacionControlador extends HttpServlet {
 			String montoRetiro = request.getParameter("monto");
 			verificarPalabraSecretaDolares(palabraSecretaDigitada, numeroCuenta, Double.parseDouble(montoRetiro));
 			response.sendRedirect("MenuControlador");
-	
+			
+		}else if (accion.equals("transferir")){
+			enviarSolicitud(request, response, "Operacion/transferencia.jsp");
+			
+		}else if (accion.equals("realizarTransferencia")){
+			String numeroCuenta = request.getParameter("numeroCuenta");
+			String pin = request.getParameter("pin");
+			String montoTransferencia = request.getParameter("montoTransferencia");
+			String numeroCuentaDestino = request.getParameter("numeroCuentaDestino");
+			realizarTransferencia(numeroCuenta, pin, Double.parseDouble(montoTransferencia), numeroCuentaDestino);
+		    response.sendRedirect("MenuControlador?accion=transferir");		
+
+		}else if (accion.equals("verificarPalabraSecretaTransferencia")){
+			String numeroCuenta = request.getParameter("cuenta");
+			String palabraSecretaDigitada = request.getParameter("palabraSecreta");
+			String montoTransferencia = request.getParameter("monto");
+			String numeroCuentaDestino = request.getParameter("cuentaDestino");
+			verificarPalabraSecretaTransferencia(palabraSecretaDigitada, numeroCuenta, Double.parseDouble(montoTransferencia), numeroCuentaDestino);
+			response.sendRedirect("MenuControlador");
+				
 		}else if (accion.equals("consultarTipoCambioCompra")){
 			TipoCambio tc = new TipoCambio();
 			request.setAttribute("tipoCambioCompra", tc.getCompra());	
@@ -155,6 +174,49 @@ public class OperacionControlador extends HttpServlet {
 		}
 	}
 
+	private void realizarTransferencia(String pNumeroCuenta, String pPin, double pMontoTransferencia, String pNumeroCuentaDestino) {
+		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
+		Cuenta cuentaDestino = cuentaCrud.consultarCuenta(pNumeroCuentaDestino);
+		Cliente cliente = new ClienteCRUD().consultarPropietarioCuenta(pNumeroCuenta);
+
+		if (sePermiteOperacion(cuenta) && validarPin(cuenta.getPin(), pPin) && sePermiteOperacion(cuentaDestino))  {
+			palabraSecreta = PalabraSecreta.generarPalabraSecreta();
+			Sms.enviarSms("Su palabra secreta es: " + palabraSecreta, cliente.getNumeroTelefono());
+			request.getSession().setAttribute("cuenta", cuenta.getNumeroCuenta());
+			request.getSession().setAttribute("cliente", cliente.getIdentificacion());
+			request.getSession().setAttribute("monto", pMontoTransferencia);
+			request.getSession().setAttribute("cuentaDestino", cuentaDestino.getNumeroCuenta());
+			request.getSession().setAttribute("mensajeTexto", "Estimado usuario se ha enviado una palabra por mensaje de texto, por favor revise sus mensajes y proceda a digitar la palabra enviada");
+		}
+	}
+	
+		private void verificarPalabraSecretaTransferencia(String pPalabraSecretaDigitada, String pNumeroCuenta, double pMontoTransferencia, String pNumeroCuentaDestino) {
+		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
+		Cuenta cuentaDestino = cuentaCrud.consultarCuenta(pNumeroCuentaDestino);
+		
+		if (validarPalabraSecreta(palabraSecreta, pPalabraSecretaDigitada, cuenta)) {
+			try {
+				cuenta.retirarColones(pMontoTransferencia);
+				cuentaCrud.actualizarSaldo(cuenta);
+				Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
+				new OperacionCRUD().registrarOperacion(operacion, cuenta.getNumeroCuenta());
+				
+				cuentaDestino.depositarColones(pMontoTransferencia);
+				cuentaCrud.actualizarSaldo(cuentaDestino);
+				Operacion operacionDestino = cuentaDestino.getOperaciones().get(cuentaDestino.getOperaciones().size() - 1);
+				new OperacionCRUD().registrarOperacion(operacionDestino, cuentaDestino.getNumeroCuenta());
+						
+				request.getSession().setAttribute("mensaje", "Estimado usuario, el monto de este retiro es " + pMontoTransferencia + " colones."
+								+ "<br></br> [El monto cobrado por concepto de comisión fue de " + operacion.getMontoComision() + " colones"
+								+ ", que fueron rebajados automáticamente de su saldo actual]");
+
+			} catch (FondosInsuficientesExcepcion ex) {
+				request.getSession().setAttribute("mensaje", "No hay suficientes fondos para realizar la operación");
+			}
+		} else {
+			request.getSession().setAttribute("mensaje", "La palabra secreta es incorrecta");
+		}
+	}
 	
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)

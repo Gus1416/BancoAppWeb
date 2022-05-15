@@ -54,7 +54,8 @@ public class MenuControlador extends HttpServlet {
 						|| accion.equals("consultarTipoCambioCompra") || accion.equals("consultarTipoCambioVenta") 
 						|| accion.equals("consultarSaldoActual") || accion.equals("consultarSaldoActualDolares")
 						|| accion.equals("consultarEstadoCuenta") || accion.equals("consultarEstatus")
-						|| accion.equals("consultarTotalComisiones") || accion.equals("consultarComisionesCuenta")){
+						|| accion.equals("consultarTotalComisiones") || accion.equals("consultarComisionesCuenta")
+						|| accion.equals("transferir")){
 			dispatcher = request.getRequestDispatcher("/OperacionControlador");
 			dispatcher.forward(request, response);
 		}

@@ -45,6 +45,9 @@
                     <a href="MenuControlador?accion=retirarDolares">Retirar en dólares</a>
                 </li>
                 <li class="nav-li">
+                    <a href="MenuControlador?accion=transferir">Transferir a otra cuenta</a>
+                </li>
+                <li class="nav-li">
                     <a href="MenuControlador?accion=consultarTipoCambioCompra">Consultar tipo de cambio de compra</a>
                 </li>
                 <li class="nav-li">
