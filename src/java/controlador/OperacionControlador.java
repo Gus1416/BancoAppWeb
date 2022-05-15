@@ -28,6 +28,7 @@ public class OperacionControlador extends HttpServlet {
 	
 	Cuenta cuenta = new Cuenta();
 	CuentaCRUD cuentaCrud = new CuentaCRUD();
+	OperacionCRUD operacionCrud = new OperacionCRUD();
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -193,15 +194,18 @@ public class OperacionControlador extends HttpServlet {
 		private void verificarPalabraSecretaTransferencia(String pPalabraSecretaDigitada, String pNumeroCuenta, double pMontoTransferencia, String pNumeroCuentaDestino) {
 		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
 		Cuenta cuentaDestino = cuentaCrud.consultarCuenta(pNumeroCuentaDestino);
+		int cantidadOperaciones = 0;
 		
 		if (validarPalabraSecreta(palabraSecreta, pPalabraSecretaDigitada, cuenta)) {
 			try {
-				cuenta.retirarColones(pMontoTransferencia);
+				cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(cuenta.getNumeroCuenta());
+				cuenta.retirarColones(pMontoTransferencia, cantidadOperaciones);
 				cuentaCrud.actualizarSaldo(cuenta);
 				Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
 				new OperacionCRUD().registrarOperacion(operacion, cuenta.getNumeroCuenta());
 				
-				cuentaDestino.depositarColones(pMontoTransferencia);
+			    cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(cuentaDestino.getNumeroCuenta());
+				cuentaDestino.depositarColones(pMontoTransferencia, cantidadOperaciones);
 				cuentaCrud.actualizarSaldo(cuentaDestino);
 				Operacion operacionDestino = cuentaDestino.getOperaciones().get(cuentaDestino.getOperaciones().size() - 1);
 				new OperacionCRUD().registrarOperacion(operacionDestino, cuentaDestino.getNumeroCuenta());
@@ -241,9 +245,10 @@ public class OperacionControlador extends HttpServlet {
 	
 	private void realizarDepositoColones(String pNumeroCuenta, double pMontoDeposito) {
 		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
-		
+
 		if (sePermiteOperacion(cuenta)) {
-			cuenta.depositarColones(pMontoDeposito);
+			int cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(cuenta.getNumeroCuenta());
+			cuenta.depositarColones(pMontoDeposito, cantidadOperaciones);
 			cuentaCrud.actualizarSaldo(cuenta);
 			Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
 			new OperacionCRUD().registrarOperacion(operacion, pNumeroCuenta);
@@ -255,7 +260,8 @@ public class OperacionControlador extends HttpServlet {
 		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
 
 		if (sePermiteOperacion(cuenta)) {
-			cuenta.depositarDolares(pMontoDeposito);
+			int cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(cuenta.getNumeroCuenta());
+			cuenta.depositarDolares(pMontoDeposito, cantidadOperaciones);
 			cuentaCrud.actualizarSaldo(cuenta);
 			Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
 			new OperacionCRUD().registrarOperacion(operacion, pNumeroCuenta);
@@ -282,7 +288,8 @@ public class OperacionControlador extends HttpServlet {
 		
 		if (validarPalabraSecreta(palabraSecreta, pPalabraSecretaDigitada, cuenta)) {
 			try {
-				cuenta.retirarColones(pMontoRetiro);
+			int cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(cuenta.getNumeroCuenta());
+				cuenta.retirarColones(pMontoRetiro, cantidadOperaciones);
 				cuentaCrud.actualizarSaldo(cuenta);
 				Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
 				new OperacionCRUD().registrarOperacion(operacion, cuenta.getNumeroCuenta());
@@ -318,7 +325,9 @@ public class OperacionControlador extends HttpServlet {
 
 		if (validarPalabraSecreta(palabraSecreta, pPalabraSecretaDigitada, cuenta)) {
 			try {
-				cuenta.retirarDolares(pMontoRetiro);
+				
+			int cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(cuenta.getNumeroCuenta());
+				cuenta.retirarDolares(pMontoRetiro, cantidadOperaciones);
 				cuentaCrud.actualizarSaldo(cuenta);
 				Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
 				System.out.println("fasdfasdfasfdasfasdfasfda" + operacion.getMoneda());
