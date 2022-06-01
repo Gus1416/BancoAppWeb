@@ -31,12 +31,54 @@
                 <li class="nav-li">
                     <a href="MenuControlador?accion=cambiarPin">Cambiar pin</a>
                 </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=depositarColones">Depositar en colones</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=depositarDolares">Depositar en dólares</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=retirarColones">Retirar en colones</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=retirarDolares">Retirar en dólares</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=transferir">Transferir a otra cuenta</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarTipoCambioCompra">Consultar tipo de cambio de compra</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarTipoCambioVenta">Consultar tipo de cambio de venta</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarSaldoActual">Consultar saldo actual</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarSaldoActualDolares">Consultar saldo actual en dólares</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarEstadoCuenta">Consultar estado de cuenta</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarEstadoCuentaDolares">Consultar estado de cuenta en dólares</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarEstatus">Consultar estatus de cuenta</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarTotalComisiones">Consultar ganancias por cobro total de comisiones</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarComisionesCuenta">Consultar ganancias por cobro de comisiones a una cuenta</a>
+                </li>
             </ul>
         </nav>
         
         <div class="contenedor">
             
-            <h2>Retiro en colones</h2>
+            <h2>Retiro en dólares</h2>
 
             <form class="reg-form" action="OperacionControlador?accion=realizarRetiroDolares" method="POST" autocomplete="off">
 

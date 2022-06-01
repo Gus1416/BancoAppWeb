@@ -63,13 +63,16 @@
                     <a href="MenuControlador?accion=consultarEstadoCuenta">Consultar estado de cuenta</a>
                 </li>
                 <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarEstadoCuentaDolares">Consultar estado de cuenta en dólares</a>
+                </li>
+                <li class="nav-li">
                     <a href="MenuControlador?accion=consultarEstatus">Consultar estatus de cuenta</a>
                 </li>
                 <li class="nav-li">
                     <a href="MenuControlador?accion=consultarTotalComisiones">Consultar ganancias por cobro total de comisiones</a>
                 </li>
                 <li class="nav-li">
-                    <a href="MenuControlador?accion=consultarComisionesCuenta">Consultar ganancias por cobro de comisiones a una cuenta/a>
+                    <a href="MenuControlador?accion=consultarComisionesCuenta">Consultar ganancias por cobro de comisiones a una cuenta</a>
                 </li>
             </ul>
         </nav>

@@ -16,6 +16,7 @@ import logicadenegocios.Cuenta;
 import logicadenegocios.Operacion;
 import logicadenegocios.PalabraSecreta;
 import logicadevalidacion.FondosInsuficientesExcepcion;
+import serviciosexternos.Correo;
 import serviciosexternos.Sms;
 import serviciosexternos.TipoCambio;
 
@@ -152,7 +153,16 @@ public class OperacionControlador extends HttpServlet {
 			String pin = request.getParameter("pin");			
 			verificarConsultaEstadoCuenta(numeroCuenta, pin);
 			response.sendRedirect("MenuControlador");
-							
+			
+		}else if (accion.equals("consultarEstadoCuentaDolares")){
+			enviarSolicitud(request, response, "Operacion/estadoCuentaDolares.jsp");
+	
+		} else if (accion.equals("verificarConsultaEstadoCuentaDolares")) {
+			String numeroCuenta = request.getParameter("numeroCuenta");
+			String pin = request.getParameter("pin");
+			verificarConsultaEstadoCuentaDolares(numeroCuenta, pin);
+			response.sendRedirect("MenuControlador");
+		
 		} else if (accion.equals("consultarEstatus")){
 			enviarSolicitud(request, response, "Operacion/consultaEstatus.jsp");
 					
@@ -175,6 +185,135 @@ public class OperacionControlador extends HttpServlet {
 		}
 	}
 
+	
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+					throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+	@Override
+	public String getServletInfo() {
+		return "Short description";
+	}
+	
+	private void actualizarPin(String pNumeroCuenta, String pinActual, String pNuevoPin) {
+		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
+		
+		if (sePermiteOperacion(cuenta) && validarPin(cuenta.getPin(), pinActual)) {
+			cuenta.cambiarPin(pNuevoPin);
+			cuentaCrud.cambiarPin(cuenta);
+			request.getSession().setAttribute("mensaje", "Estimado usuario, se ha cambiado satisfactoriamente el PIN de su cuenta " + pNumeroCuenta);
+		}
+	}
+	
+	private void realizarDepositoColones(String pNumeroCuenta, double pMontoDeposito) {
+		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
+
+		if (sePermiteOperacion(cuenta)) {
+			int cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(pNumeroCuenta);
+			cuenta.depositarColones(pMontoDeposito, cantidadOperaciones);
+			cuentaCrud.actualizarSaldo(cuenta);
+			Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
+			new OperacionCRUD().registrarOperacion(operacion, pNumeroCuenta);
+			request.getSession().setAttribute("mensaje", "Estimado usuario, se han depositado correctamente " + String.format("%,.2f", pMontoDeposito) + " colones"
+							+ "<br></br>[El monto real depositado a su cuenta " + cuenta.getNumeroCuenta() + " es de " + String.format("%,.2f", (pMontoDeposito - operacion.getMontoComision())) + "colones]"
+							+ "<br></br>[El monto cobrado por concepto de comisión fue de " + String.format("%,.2f", operacion.getMontoComision()) + " colones, que"
+							+ "<br></br>fueron rebajados automáticamente de su saldo actual]");
+		}
+	}
+	
+	private void realizarDepositoDolares(String pNumeroCuenta, double pMontoDeposito) {
+		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
+		TipoCambio tc = new TipoCambio();
+
+		if (sePermiteOperacion(cuenta)) {
+			int cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(cuenta.getNumeroCuenta());
+			cuenta.depositarDolares(pMontoDeposito, cantidadOperaciones);
+			cuentaCrud.actualizarSaldo(cuenta);
+			Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
+			new OperacionCRUD().registrarOperacion(operacion, pNumeroCuenta);
+			request.getSession().setAttribute("mensaje", "Estimado usuario, se han depositado correctamente " + String.format("%,.2f", pMontoDeposito) + " dólares"
+							+ "<br></br>[Según el BCCR, el tipo de cambio actual de compra del dólar es " + tc.getCompra() +  "]"
+							+ "<br></br>[El monto equivalente en colones es " + String.format("%,.2f", tc.convertirAColones(pMontoDeposito) )+ "]"
+							+ "<br></br>[El monto real depositado a su cuenta " + cuenta.getNumeroCuenta() + " es de " + String.format("%,.2f", (tc.convertirAColones(pMontoDeposito)- operacion.getMontoComision())) + "colones]"
+							+ "<br></br>[El monto cobrado por concepto de comisión fue de " + String.format("%,.2f", operacion.getMontoComision()) + " colones, que"
+							+ "<br></br>fueron rebajados automáticamente de su saldo actual]");
+		}
+	}
+	
+	private void realizarRetiroColones(String pNumeroCuenta, String pPin, double pMontoRetiro) {
+		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
+		Cliente cliente = new ClienteCRUD().consultarPropietarioCuenta(pNumeroCuenta);
+
+		if (sePermiteOperacion(cuenta) && validarPin(cuenta.getPin(), pPin)) {
+			palabraSecreta = PalabraSecreta.generarPalabraSecreta();
+			Sms.enviarSms("Su palabra secreta es: " + palabraSecreta, cliente.getNumeroTelefono());
+			request.getSession().setAttribute("cuenta", cuenta.getNumeroCuenta());
+			request.getSession().setAttribute("cliente", cliente.getIdentificacion());
+			request.getSession().setAttribute("monto", pMontoRetiro);
+			request.getSession().setAttribute("mensajeTexto", "Estimado usuario se ha enviado una palabra por mensaje de texto, por favor revise sus mensajes y proceda a digitar la palabra enviada");
+		}
+	}
+	
+	private void verificarPalabraSecreta(String pPalabraSecretaDigitada, String pNumeroCuenta, double pMontoRetiro) {
+		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
+		
+		if (validarPalabraSecreta(palabraSecreta, pPalabraSecretaDigitada, cuenta)) {
+			try {
+			int cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(cuenta.getNumeroCuenta());
+				cuenta.retirarColones(pMontoRetiro, cantidadOperaciones);
+				cuentaCrud.actualizarSaldo(cuenta);
+				Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);												
+				new OperacionCRUD().registrarOperacion(operacion, cuenta.getNumeroCuenta());
+				request.getSession().setAttribute("mensaje", "Estimado usuario, el monto de este retiro es " + pMontoRetiro + " colones."
+								+ "<br></br> [El monto cobrado por concepto de comisión fue de " + operacion.getMontoComision() + " colones"
+								+ ", que fueron rebajados automáticamente de su saldo actual]");
+
+			} catch (FondosInsuficientesExcepcion ex) {
+				request.getSession().setAttribute("mensaje", "No hay suficientes fondos para realizar la operación");
+			}
+		}
+	}
+	
+	private void realizarRetiroDolares(String pNumeroCuenta, String pPin, double pMontoRetiro) {
+		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
+		Cliente cliente = new ClienteCRUD().consultarPropietarioCuenta(pNumeroCuenta);
+
+		if (sePermiteOperacion(cuenta) && validarPin(cuenta.getPin(), pPin)) {
+			palabraSecreta = PalabraSecreta.generarPalabraSecreta();
+			Sms.enviarSms("Su palabra secreta es: " + palabraSecreta, cliente.getNumeroTelefono());
+			request.getSession().setAttribute("cuenta", cuenta.getNumeroCuenta());
+			request.getSession().setAttribute("cliente", cliente.getIdentificacion());
+			request.getSession().setAttribute("monto", pMontoRetiro);
+			request.setAttribute("mensajeTexto", "Estimado usuario se ha enviado una palabra por mensaje de texto, por favor revise sus mensajes y proceda a digitar la palabra enviada");
+		}
+	}
+	
+	private void verificarPalabraSecretaDolares(String pPalabraSecretaDigitada, String pNumeroCuenta, double pMontoRetiro) {
+		TipoCambio tc = new TipoCambio();
+		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
+
+		if (validarPalabraSecreta(palabraSecreta, pPalabraSecretaDigitada, cuenta)) {
+			try {
+				
+			int cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(cuenta.getNumeroCuenta());
+				cuenta.retirarDolares(pMontoRetiro, cantidadOperaciones);
+				cuentaCrud.actualizarSaldo(cuenta);
+				Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
+				new OperacionCRUD().registrarOperacion(operacion, cuenta.getNumeroCuenta());
+				request.getSession().setAttribute("mensaje", "Estimado usuario, el monto de este retiro es " + pMontoRetiro + " dólares."
+								+ "<br></br>  [Según el BCCR, el tipo de cambio de venta del dólar de hoy es: " + tc.getVenta() + "]"
+								+ "<br></br> [El monto equivalente de su retiro es " + String.format("%,.2f", tc.convertirAColones(pMontoRetiro)) + " colones]"
+								+ "<br></br> [El monto cobrado por concepto de comisión fue de " + operacion.getMontoComision() + " colones"
+								+ ", que fueron rebajados automáticamente de su saldo actual]");
+
+			} catch (FondosInsuficientesExcepcion ex) {
+				request.getSession().setAttribute("mensaje", "No hay suficientes fondos para realizar la operación");
+			}
+		}
+	}
+	
 	private void realizarTransferencia(String pNumeroCuenta, String pPin, double pMontoTransferencia, String pNumeroCuentaDestino) {
 		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
 		Cuenta cuentaDestino = cuentaCrud.consultarCuenta(pNumeroCuentaDestino);
@@ -210,148 +349,22 @@ public class OperacionControlador extends HttpServlet {
 				Operacion operacionDestino = cuentaDestino.getOperaciones().get(cuentaDestino.getOperaciones().size() - 1);
 				new OperacionCRUD().registrarOperacion(operacionDestino, cuentaDestino.getNumeroCuenta());
 						
-				request.getSession().setAttribute("mensaje", "Estimado usuario, el monto de este retiro es " + pMontoTransferencia + " colones."
+				request.getSession().setAttribute("mensaje", "Estimado usuario, la transferencia de fondos se ejecutó satisfactoriamente. "
+								+ "El monto retirado de la cuenta origen y depositado en la cuenta destino es " + String.format("%,.2f", pMontoTransferencia) + " colones."
 								+ "<br></br> [El monto cobrado por concepto de comisión fue de " + operacion.getMontoComision() + " colones"
 								+ ", que fueron rebajados automáticamente de su saldo actual]");
 
 			} catch (FondosInsuficientesExcepcion ex) {
 				request.getSession().setAttribute("mensaje", "No hay suficientes fondos para realizar la operación");
 			}
-		} else {
-			request.getSession().setAttribute("mensaje", "La palabra secreta es incorrecta");
 		}
 	}
-	
-	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response)
-					throws ServletException, IOException {
-		doGet(request, response);
-	}
-
-	@Override
-	public String getServletInfo() {
-		return "Short description";
-	}
-	
-	private void actualizarPin(String pNumeroCuenta, String pinActual, String pNuevoPin) {
-		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
 		
-		if (sePermiteOperacion(cuenta) && validarPin(cuenta.getPin(), pinActual)) {
-			cuenta.cambiarPin(pNuevoPin);
-			cuentaCrud.cambiarPin(cuenta);
-			request.getSession().setAttribute("mensaje", "El pin de la cuenta ha sido actualizado");
-		}
-	}
-	
-	private void realizarDepositoColones(String pNumeroCuenta, double pMontoDeposito) {
-		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
-
-		if (sePermiteOperacion(cuenta)) {
-			int cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(cuenta.getNumeroCuenta());
-			cuenta.depositarColones(pMontoDeposito, cantidadOperaciones);
-			cuentaCrud.actualizarSaldo(cuenta);
-			Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
-			new OperacionCRUD().registrarOperacion(operacion, pNumeroCuenta);
-			request.getSession().setAttribute("mensaje", "El depósito ha sido realizado");
-		}
-	}
-	
-	private void realizarDepositoDolares(String pNumeroCuenta, double pMontoDeposito) {
-		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
-
-		if (sePermiteOperacion(cuenta)) {
-			int cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(cuenta.getNumeroCuenta());
-			cuenta.depositarDolares(pMontoDeposito, cantidadOperaciones);
-			cuentaCrud.actualizarSaldo(cuenta);
-			Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
-			new OperacionCRUD().registrarOperacion(operacion, pNumeroCuenta);
-			request.getSession().setAttribute("mensaje", "El depósito en dólares ha sido realizado");
-		}
-	}
-	
-	private void realizarRetiroColones(String pNumeroCuenta, String pPin, double pMontoRetiro) {
-		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
-		Cliente cliente = new ClienteCRUD().consultarPropietarioCuenta(pNumeroCuenta);
-
-		if (sePermiteOperacion(cuenta) && validarPin(cuenta.getPin(), pPin)) {
-			palabraSecreta = PalabraSecreta.generarPalabraSecreta();
-			Sms.enviarSms("Su palabra secreta es: " + palabraSecreta, cliente.getNumeroTelefono());
-			request.getSession().setAttribute("cuenta", cuenta.getNumeroCuenta());
-			request.getSession().setAttribute("cliente", cliente.getIdentificacion());
-			request.getSession().setAttribute("monto", pMontoRetiro);
-			request.getSession().setAttribute("mensajeTexto", "Estimado usuario se ha enviado una palabra por mensaje de texto, por favor revise sus mensajes y proceda a digitar la palabra enviada");
-		}
-	}
-	
-	private void verificarPalabraSecreta(String pPalabraSecretaDigitada, String pNumeroCuenta, double pMontoRetiro) {
-		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
-		
-		if (validarPalabraSecreta(palabraSecreta, pPalabraSecretaDigitada, cuenta)) {
-			try {
-			int cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(cuenta.getNumeroCuenta());
-				cuenta.retirarColones(pMontoRetiro, cantidadOperaciones);
-				cuentaCrud.actualizarSaldo(cuenta);
-				Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
-				new OperacionCRUD().registrarOperacion(operacion, cuenta.getNumeroCuenta());
-				request.getSession().setAttribute("mensaje", "Estimado usuario, el monto de este retiro es " + pMontoRetiro + " colones."
-								+ "<br></br> [El monto cobrado por concepto de comisión fue de " + operacion.getMontoComision() + " colones"
-								+ ", que fueron rebajados automáticamente de su saldo actual]");
-
-			} catch (FondosInsuficientesExcepcion ex) {
-				request.getSession().setAttribute("mensaje", "No hay suficientes fondos para realizar la operación");
-			}
-		} else {
-			request.getSession().setAttribute("mensaje", "La palabra secreta es incorrecta");
-		}
-	}
-	
-	private void realizarRetiroDolares(String pNumeroCuenta, String pPin, double pMontoRetiro) {
-		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
-		Cliente cliente = new ClienteCRUD().consultarPropietarioCuenta(pNumeroCuenta);
-
-		if (sePermiteOperacion(cuenta) && validarPin(cuenta.getPin(), pPin)) {
-			palabraSecreta = PalabraSecreta.generarPalabraSecreta();
-			Sms.enviarSms("Su palabra secreta es: " + palabraSecreta, cliente.getNumeroTelefono());
-			request.getSession().setAttribute("cuenta", cuenta.getNumeroCuenta());
-			request.getSession().setAttribute("cliente", cliente.getIdentificacion());
-			request.getSession().setAttribute("monto", pMontoRetiro);
-			request.setAttribute("mensaje", "Estimado usuario se ha enviado una palabra por mensaje de texto, por favor revise sus mensajes y proceda a digitar la palabra enviada");
-		}
-	}
-	
-	private void verificarPalabraSecretaDolares(String pPalabraSecretaDigitada, String pNumeroCuenta, double pMontoRetiro) {
-		TipoCambio tc = new TipoCambio();
-		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
-
-		if (validarPalabraSecreta(palabraSecreta, pPalabraSecretaDigitada, cuenta)) {
-			try {
-				
-			int cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(cuenta.getNumeroCuenta());
-				cuenta.retirarDolares(pMontoRetiro, cantidadOperaciones);
-				cuentaCrud.actualizarSaldo(cuenta);
-				Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
-				System.out.println("fasdfasdfasfdasfasdfasfda" + operacion.getMoneda());
-				new OperacionCRUD().registrarOperacion(operacion, cuenta.getNumeroCuenta());
-				request.getSession().setAttribute("mensaje", "Estimado usuario, el monto de este retiro es " + pMontoRetiro + " dólares."
-								+ "<br></br>  [Según el BCCR, el tipo de cambio de venta del dólar de hoy es: " + tc.getVenta() + "]"
-								+ "<br></br> [El monto equivalente de su retiro es " + tc.convertirAColones(pMontoRetiro) + "colones]"
-								+ "<br></br> [El monto cobrado por concepto de comisión fue de " + operacion.getMontoComision() + " colones"
-								+ ", que fueron rebajados automáticamente de su saldo actual]");
-
-			} catch (FondosInsuficientesExcepcion ex) {
-				request.getSession().setAttribute("mensaje", "No hay suficientes fondos para realizar la operación");
-			}
-
-		} else {
-			request.getSession().setAttribute("mensaje", "La palabra secreta es incorrecta");
-		}
-	}
-	
 	private void verificarConsultaSaldoActual(String pNumeroCuenta, String pPin) {
 		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
 
 		if (sePermiteOperacion(cuenta) && validarPin(cuenta.getPin(), pPin)) {
-			request.getSession().setAttribute("mensaje", "Estimado usuario el saldo actual de su cuenta es " + cuenta.consultarSaldoActual() + " colones");
+			request.getSession().setAttribute("mensaje", "Estimado usuario el saldo actual de su cuenta es " + String.format("%,.2f", cuenta.consultarSaldoActual()) + " colones");
 		}
 	}
 	
@@ -370,7 +383,15 @@ public class OperacionControlador extends HttpServlet {
 		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
 
 		if (sePermiteOperacion(cuenta) && validarPin(cuenta.getPin(), pPin)) {
-			request.getSession().setAttribute("mensaje", cambiarSaltosLinea(cuenta.consultarEstadoCuenta()));
+			request.getSession().setAttribute("mensaje", cambiarSaltosLinea(cuenta.estadoCuentaColones()));
+		}
+	}
+	
+	private void verificarConsultaEstadoCuentaDolares(String pNumeroCuenta, String pPin) {
+		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
+
+		if (sePermiteOperacion(cuenta) && validarPin(cuenta.getPin(), pPin)) {
+			request.getSession().setAttribute("mensaje", cambiarSaltosLinea(cuenta.estadoCuentaDolares()));
 		}
 	}
 	
@@ -450,15 +471,11 @@ public class OperacionControlador extends HttpServlet {
 
 	private boolean validarPalabraSecreta(String pPalabraEnviada, String pPalabraDigitada, Cuenta cuenta){
 		if (pPalabraEnviada.equals(pPalabraDigitada)) {
-			this.intentos= 2;
+			gestionarIntentosFallidos(true);
 			return true;
 		} else {
-			this.intentos--;
-			if (this.intentos == 0) {
-				cuenta.inactivarCuenta();
-				cuentaCrud.cambiarEstatus(cuenta);
-				this.intentos = 2;
-			}
+			request.getSession().setAttribute("mensaje", "La palabra secreta es incorrecta");
+			gestionarIntentosFallidos(false);
 			return false;
 		}
 	}
@@ -477,6 +494,13 @@ public class OperacionControlador extends HttpServlet {
 	private void inactivarCuentaPorIntentosFallidos() {
 		cuenta.inactivarCuenta();
 		cuentaCrud.cambiarEstatus(cuenta);
+		enviarCorreo();
+	}
+	
+	private void enviarCorreo(){
+		Cliente cliente = new ClienteCRUD().consultarPropietarioCuenta(cuenta.getNumeroCuenta());
+		Correo correo = new Correo();
+		correo.enviarCorreo(cliente.getCorreoElectronico(),cliente.getNombre() + " " + cliente.getPrimerApellido() + " " + cliente.getSegundoApellido(), cuenta.getNumeroCuenta());
 	}
 
 	private String cambiarSaltosLinea(String pTexto) {

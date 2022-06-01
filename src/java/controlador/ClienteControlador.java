@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import logicadeaccesodedatos.ClienteCRUD;
 import logicadenegocios.Cliente;
+import logicadenegocios.Ordenacion;
 
 /**
  *
@@ -22,7 +23,8 @@ import logicadenegocios.Cliente;
  */
 @WebServlet(name = "ClienteControlador", urlPatterns = {"/ClienteControlador"})
 public class ClienteControlador extends HttpServlet {
-
+	HttpServletRequest request;
+	
 	/**
 	 * Handles the HTTP <code>GET</code> method.
 	 *
@@ -33,6 +35,7 @@ public class ClienteControlador extends HttpServlet {
 	 */
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		this.request = request;
 		String accion;
 		RequestDispatcher dispatcher = null;
 		accion = request.getParameter("accion");
@@ -49,23 +52,12 @@ public class ClienteControlador extends HttpServlet {
 			String fechaNacimiento = request.getParameter("fechaNacimiento");
 			String numeroTelefono = request.getParameter("numeroTelefono");
 			String correoElectronico = request.getParameter("correoElectronico");
-
-			Cliente cliente = new Cliente(identificacion, primerApellido, segundoApellido, nombre, convertirStringADate(fechaNacimiento), numeroTelefono, correoElectronico);
-			
-			if (new ClienteCRUD().registrarCliente(cliente)) { //////////////////////VALIDAR NUMERO
-				String mensaje = "Cliente registrado con éxito"; ////////////////////////////////////////////ARREGLAR
-				request.getSession().setAttribute("mensaje", mensaje);
-
-			} else {
-				String mensaje = "No se pudo registrar el cliente";////////////////////////////////////////ARREGLAR
-				request.getSession().setAttribute("mensaje", mensaje);
-			}
+			registrarCliente(primerApellido, segundoApellido, nombre, identificacion, convertirStringADate(fechaNacimiento), numeroTelefono, correoElectronico);
 			response.sendRedirect("MenuControlador");
 
 		} else if (accion.equals("listarClientes")) {
 			dispatcher = request.getRequestDispatcher("Cliente/listaClientes.jsp");
-			ArrayList<Cliente> clientes = new ClienteCRUD().consultarClientes();
-			request.setAttribute("clientes", clientes);
+			listarClientes();
 			dispatcher.forward(request, response);
 			
 		} else if (accion.equals("verDetallesCliente")){		
@@ -77,9 +69,36 @@ public class ClienteControlador extends HttpServlet {
 			request.setAttribute("detallesCliente", detallesCliente);
 			dispatcher.forward(request, response);
 		}
-
 	}
 
+	private void registrarCliente(String pPrimerApellido, String pSegundoApellido, String pNombre, String pIdentificacion, Date pFechaNacimiento, String pNumeroTelefono, String pCorreoElectronico) {
+		 int cantidadClientes = new ClienteCRUD().obtenerCantidadClientes();
+		Cliente cliente = new Cliente(pIdentificacion, pPrimerApellido, pSegundoApellido, pNombre, pFechaNacimiento,  pNumeroTelefono, pCorreoElectronico, cantidadClientes);
+
+		if (new ClienteCRUD().registrarCliente(cliente)) { //////////////////////VALIDAR NUMERO
+			String mensaje = "Se ha creado un nuevo cliente en el sistema, los datos que fueron almacenados son:"
+							+ "<br></br>Código: " + cliente.getCodigoCliente()
+							+ "<br></br>Nombre. " + cliente.getPrimerApellido() + " " + cliente.getSegundoApellido() + " " + cliente.getNombre()
+							+ "<br></br>Identificación: " + cliente.getIdentificacion()
+							+ "<br></br>Fecha de Nacimiento: " + new SimpleDateFormat("dd-MM-yyyy").format(cliente.getFechaNacimiento())
+							+ "<br></br>Número telefónico: " + cliente.getNumeroTelefono();
+			request.getSession().setAttribute("mensaje", mensaje);
+
+		} else {
+			String mensaje = "No se pudo registrar el cliente";
+			request.getSession().setAttribute("mensaje", mensaje);
+		}
+	}
+	
+	private void listarClientes() {
+		ArrayList<Cliente> clientes = new ClienteCRUD().consultarClientes();
+		Cliente[] arregloClientes = convertirClientesEnArreglo(clientes);
+		Ordenacion ordenacion = new Ordenacion();
+		ordenacion.insercion(arregloClientes);
+		request.setAttribute("clientes", arregloClientes);
+	}
+	
+	
 	/**
 	 * Handles the HTTP <code>POST</code> method.
 	 *
@@ -118,4 +137,13 @@ public class ClienteControlador extends HttpServlet {
 		String textoCambiado = pTexto.replace("\n", "<br></br>");
 		return textoCambiado;
 	}
+	
+	public static Cliente[] convertirClientesEnArreglo(ArrayList<Cliente> clientela) {
+		Cliente[] arregloClientes = new Cliente[clientela.size()];
+		for (int i = 0; i < clientela.size(); i++) {
+			arregloClientes[i] = clientela.get(i);
+		}
+		return arregloClientes;
+	}
 }
+	

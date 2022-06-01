@@ -12,10 +12,9 @@
         <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
         <title>JSP Page</title>
         <link rel="stylesheet" type="text/css" href="/BancoAppWeb/CSS/estilos.css"/>
-<!--        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">-->
     </head>
     <body>
-        <nav class="barnav">
+         <nav class="barnav">
             <h1 id="titulo">iBanco</h1>
             <ul class="nav-ul">
                 <li class="nav-li">
@@ -33,6 +32,48 @@
                 <li class="nav-li">
                     <a href="MenuControlador?accion=cambiarPin">Cambiar pin</a>
                 </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=depositarColones">Depositar en colones</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=depositarDolares">Depositar en dólares</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=retirarColones">Retirar en colones</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=retirarDolares">Retirar en dólares</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=transferir">Transferir a otra cuenta</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarTipoCambioCompra">Consultar tipo de cambio de compra</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarTipoCambioVenta">Consultar tipo de cambio de venta</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarSaldoActual">Consultar saldo actual</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarSaldoActualDolares">Consultar saldo actual en dólares</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarEstadoCuenta">Consultar estado de cuenta</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarEstadoCuentaDolares">Consultar estado de cuenta en dólares</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarEstatus">Consultar estatus de cuenta</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarTotalComisiones">Consultar ganancias por cobro total de comisiones</a>
+                </li>
+                <li class="nav-li">
+                    <a href="MenuControlador?accion=consultarComisionesCuenta">Consultar ganancias por cobro de comisiones a una cuenta</a>
+                </li>
             </ul>
         </nav>
         
@@ -44,7 +85,7 @@
 
                 <div class="form-input-container">
                     <label class="form-label">Identificación del cliente</label>
-                    <input class="form-input"  id="identificacion" name="identificacion" type="text" required/>
+                    <input class="form-input"  id="identificacion" name="identificacion" type="text" pattern="([0-9]{9,9})" title="Indique la identificación en formato #0###0###" required/>
                 </div>
 
                 <div class="form-input-container">
@@ -56,7 +97,7 @@
 
                 <div class="form-input-container">
                     <label class="form-label">Monto de depósito incial</label>
-                    <input class="form-input"  id="montoInicial" name="montoInicial" type="number" required/>
+                    <input class="form-input"  id="montoInicial" name="montoInicial" type="number" pattern="[0-9]" title="Ingrese un número sin decimales" required/>
                 </div>
 
                 <button id="guardar" name="guardar" type="submit">Registrar</button>
