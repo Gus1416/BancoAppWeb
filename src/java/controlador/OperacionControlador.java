@@ -1,22 +1,29 @@
 package controlador;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import logicacreacional.BitacoraSingleton;
+import logicacreacional.OperacionCRUDSingleton;
 import logicadeaccesodedatos.ClienteCRUD;
 import logicadeaccesodedatos.CuentaCRUD;
 import logicadeaccesodedatos.OperacionCRUD;
+import logicadenegocios.Bitacora;
 import logicadenegocios.Cliente;
 import logicadenegocios.Cuenta;
 import logicadenegocios.Operacion;
 import logicadenegocios.PalabraSecreta;
 import logicadevalidacion.FondosInsuficientesExcepcion;
 import serviciosexternos.Correo;
+import serviciosexternos.CorreoLenguajeDecorator;
+import serviciosexternos.ICorreo;
 import serviciosexternos.Sms;
 import serviciosexternos.TipoCambio;
 
@@ -29,7 +36,7 @@ public class OperacionControlador extends HttpServlet {
 	
 	Cuenta cuenta = new Cuenta();
 	CuentaCRUD cuentaCrud = new CuentaCRUD();
-	OperacionCRUD operacionCrud = new OperacionCRUD();
+	OperacionCRUD operacionCrud = OperacionCRUDSingleton.getInstance();
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -44,6 +51,7 @@ public class OperacionControlador extends HttpServlet {
 			String pinActual = request.getParameter("pinActual");
 			String nuevoPin = request.getParameter("nuevoPin");
 			actualizarPin(numeroCuenta, pinActual, nuevoPin);
+			registrarEnBitacora("Cambio de PIN", "WEB");
 			response.sendRedirect("MenuControlador");
 		
 		} else if (accion.equals("depositarColones")) {
@@ -53,6 +61,7 @@ public class OperacionControlador extends HttpServlet {
 			String numeroCuenta = request.getParameter("numeroCuenta");
 			String montoDeposito = request.getParameter("montoDeposito");
 			realizarDepositoColones(numeroCuenta, Double.parseDouble(montoDeposito));
+			registrarEnBitacora("Depósito en Colones", "WEB");
 			response.sendRedirect("MenuControlador");
 						
 		} else if (accion.equals("depositarDolares")) {
@@ -62,6 +71,7 @@ public class OperacionControlador extends HttpServlet {
 			String numeroCuenta = request.getParameter("numeroCuenta");
 			String montoDeposito = request.getParameter("montoDeposito");
 			realizarDepositoDolares(numeroCuenta, Double.parseDouble(montoDeposito));
+			registrarEnBitacora("Depósito en Dólares", "WEB");
 			response.sendRedirect("MenuControlador");
 						
 		} else if (accion.equals("retirarColones")) {	
@@ -72,6 +82,7 @@ public class OperacionControlador extends HttpServlet {
 			String pin = request.getParameter("pin");
 			String montoRetiro = request.getParameter("montoRetiro");		
 			realizarRetiroColones(numeroCuenta, pin, Double.parseDouble(montoRetiro));
+			registrarEnBitacora("Retiro en Colones", "WEB");
 			response.sendRedirect("MenuControlador?accion=retirarColones");
 
 		} else if (accion.equals("verificarPalabraSecreta")) {
@@ -89,6 +100,7 @@ public class OperacionControlador extends HttpServlet {
 			String pin = request.getParameter("pin");
 			String montoRetiro = request.getParameter("montoRetiro");
 			realizarRetiroDolares(numeroCuenta, pin, Double.parseDouble(montoRetiro));
+			registrarEnBitacora("Retiro en Dólares", "WEB");
 			response.sendRedirect("MenuControlador?accion=retirarDolares");
 	
 		} else if (accion.equals("verificarPalabraSecretaDolares")){
@@ -107,6 +119,7 @@ public class OperacionControlador extends HttpServlet {
 			String montoTransferencia = request.getParameter("montoTransferencia");
 			String numeroCuentaDestino = request.getParameter("numeroCuentaDestino");
 			realizarTransferencia(numeroCuenta, pin, Double.parseDouble(montoTransferencia), numeroCuentaDestino);
+			registrarEnBitacora("Transferencia Bancaria (CRC)", "WEB");
 		    response.sendRedirect("MenuControlador?accion=transferir");		
 
 		}else if (accion.equals("verificarPalabraSecretaTransferencia")){
@@ -119,11 +132,13 @@ public class OperacionControlador extends HttpServlet {
 				
 		}else if (accion.equals("consultarTipoCambioCompra")){
 			TipoCambio tc = new TipoCambio();
+			registrarEnBitacora("Obtener TC Compra", "WEB");
 			request.setAttribute("tipoCambioCompra", tc.getCompra());	
 			enviarSolicitud(request, response, "Operacion/tipoCambioCompra.jsp");
 				
 		}else if (accion.equals("consultarTipoCambioVenta")){
 			TipoCambio tc = new TipoCambio();
+			registrarEnBitacora("Obtener TC Venta", "WEB");
 			request.setAttribute("tipoCambioVenta", tc.getVenta());
 			enviarSolicitud(request, response, "Operacion/tipoCambioVenta.jsp");			
 			
@@ -134,6 +149,7 @@ public class OperacionControlador extends HttpServlet {
 			String numeroCuenta = request.getParameter("numeroCuenta");
 			String pin = request.getParameter("pin");	
 			verificarConsultaSaldoActual(numeroCuenta, pin);
+			registrarEnBitacora("Obtener Saldo Actual (CRC)", "WEB");
 			response.sendRedirect("MenuControlador");
 
 		} else if (accion.equals("consultarSaldoActualDolares")) {
@@ -143,6 +159,7 @@ public class OperacionControlador extends HttpServlet {
 			String numeroCuenta = request.getParameter("numeroCuenta");
 			String pin = request.getParameter("pin");
 			verificarConsultaSaldoActualDolares(numeroCuenta, pin);
+			registrarEnBitacora("Obtener Saldo Actual (USD)", "WEB");
 			response.sendRedirect("MenuControlador");
 					
 		} else if (accion.equals("consultarEstadoCuenta")){
@@ -152,6 +169,7 @@ public class OperacionControlador extends HttpServlet {
 			String numeroCuenta = request.getParameter("numeroCuenta");
 			String pin = request.getParameter("pin");			
 			verificarConsultaEstadoCuenta(numeroCuenta, pin);
+			registrarEnBitacora("Consulta Estado de Cuenta (CRC)", "WEB");
 			response.sendRedirect("MenuControlador");
 			
 		}else if (accion.equals("consultarEstadoCuentaDolares")){
@@ -161,6 +179,7 @@ public class OperacionControlador extends HttpServlet {
 			String numeroCuenta = request.getParameter("numeroCuenta");
 			String pin = request.getParameter("pin");
 			verificarConsultaEstadoCuentaDolares(numeroCuenta, pin);
+			registrarEnBitacora("Consulta Estado de Cuenta (USD)", "WEB");
 			response.sendRedirect("MenuControlador");
 		
 		} else if (accion.equals("consultarEstatus")){
@@ -169,10 +188,12 @@ public class OperacionControlador extends HttpServlet {
 		} else if (accion.equals("verificarConsultaEstatus")) {
 			String numeroCuenta = request.getParameter("numeroCuenta");	
 			verificarConsultaEstatus(numeroCuenta);
+			registrarEnBitacora("Consulta Estatus de Cuenta", "WEB");
 			response.sendRedirect("MenuControlador");
 			
 		} else if (accion.equals("consultarTotalComisiones")) {
 			consultarTotalComisiones();
+			registrarEnBitacora("Consulta Ganancias Totales Comisión (General)", "WEB");
 			enviarSolicitud(request, response, "Operacion/totalComisiones.jsp");
 			
 		}else if (accion.equals("consultarComisionesCuenta")) {
@@ -181,20 +202,29 @@ public class OperacionControlador extends HttpServlet {
 		}else if (accion.equals("verificarConsultaComisionesCuenta")) {
 			String numeroCuenta = request.getParameter("numeroCuenta");
 			consultarComisionesCuenta(numeroCuenta);
+			registrarEnBitacora("Consulta Ganancias Totales Comisión (Específico)", "WEB");
 			enviarSolicitud(request, response, "Operacion/totalComisiones.jsp");
 		}
 	}
 
+	private void registrarEnBitacora(String pTipoOperacion, String pVista) {
+		Date pFechaHora = obtenerFechaHoraSistema();
+		SimpleDateFormat formatterFecha = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat formatterHora = new SimpleDateFormat("HH:mm:ss");
+		String[] registro = {formatterFecha.format(pFechaHora), formatterHora.format(pFechaHora), pTipoOperacion, pVista};
+		Bitacora bitacora = BitacoraSingleton.getInstance();
+		new OperacionCRUD().registrarEnBitacora(registro);
+		bitacora.setRegistro(registro);
+	}
+
+	private Date obtenerFechaHoraSistema() {
+		return new Date(System.currentTimeMillis());
+	}
 	
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 					throws ServletException, IOException {
 		doGet(request, response);
-	}
-
-	@Override
-	public String getServletInfo() {
-		return "Short description";
 	}
 	
 	private void actualizarPin(String pNumeroCuenta, String pinActual, String pNuevoPin) {
@@ -211,11 +241,15 @@ public class OperacionControlador extends HttpServlet {
 		cuenta = cuentaCrud.consultarCuenta(pNumeroCuenta);
 
 		if (sePermiteOperacion(cuenta)) {
-			int cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(pNumeroCuenta);
+			int cantidadOperaciones = operacionCrud.obtenerCantidadOperaciones();
 			cuenta.depositarColones(pMontoDeposito, cantidadOperaciones);
 			cuentaCrud.actualizarSaldo(cuenta);
-			Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
+			ArrayList<Operacion> operaciones = cuenta.getOperaciones();
+			Operacion operacion = operaciones.get(operaciones.size() - 1);
+			//Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
 			new OperacionCRUD().registrarOperacion(operacion, pNumeroCuenta);
+			//operacionCrud.registrarOperacion(operacion, pNumeroCuenta);
+
 			request.getSession().setAttribute("mensaje", "Estimado usuario, se han depositado correctamente " + String.format("%,.2f", pMontoDeposito) + " colones"
 							+ "<br></br>[El monto real depositado a su cuenta " + cuenta.getNumeroCuenta() + " es de " + String.format("%,.2f", (pMontoDeposito - operacion.getMontoComision())) + "colones]"
 							+ "<br></br>[El monto cobrado por concepto de comisión fue de " + String.format("%,.2f", operacion.getMontoComision()) + " colones, que"
@@ -228,7 +262,7 @@ public class OperacionControlador extends HttpServlet {
 		TipoCambio tc = new TipoCambio();
 
 		if (sePermiteOperacion(cuenta)) {
-			int cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(cuenta.getNumeroCuenta());
+			int cantidadOperaciones = operacionCrud.obtenerCantidadOperaciones();
 			cuenta.depositarDolares(pMontoDeposito, cantidadOperaciones);
 			cuentaCrud.actualizarSaldo(cuenta);
 			Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
@@ -261,7 +295,7 @@ public class OperacionControlador extends HttpServlet {
 		
 		if (validarPalabraSecreta(palabraSecreta, pPalabraSecretaDigitada, cuenta)) {
 			try {
-			int cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(cuenta.getNumeroCuenta());
+			int cantidadOperaciones = operacionCrud.obtenerCantidadOperaciones();
 				cuenta.retirarColones(pMontoRetiro, cantidadOperaciones);
 				cuentaCrud.actualizarSaldo(cuenta);
 				Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);												
@@ -297,7 +331,7 @@ public class OperacionControlador extends HttpServlet {
 		if (validarPalabraSecreta(palabraSecreta, pPalabraSecretaDigitada, cuenta)) {
 			try {
 				
-			int cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(cuenta.getNumeroCuenta());
+			int cantidadOperaciones = operacionCrud.obtenerCantidadOperaciones();
 				cuenta.retirarDolares(pMontoRetiro, cantidadOperaciones);
 				cuentaCrud.actualizarSaldo(cuenta);
 				Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
@@ -337,13 +371,13 @@ public class OperacionControlador extends HttpServlet {
 		
 		if (validarPalabraSecreta(palabraSecreta, pPalabraSecretaDigitada, cuenta)) {
 			try {
-				cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(cuenta.getNumeroCuenta());
+				cantidadOperaciones = operacionCrud.obtenerCantidadOperaciones();
 				cuenta.retirarColones(pMontoTransferencia, cantidadOperaciones);
 				cuentaCrud.actualizarSaldo(cuenta);
 				Operacion operacion = cuenta.getOperaciones().get(cuenta.getOperaciones().size() - 1);
 				new OperacionCRUD().registrarOperacion(operacion, cuenta.getNumeroCuenta());
 				
-			    cantidadOperaciones = operacionCrud.obtenerCantidadOpeCuenta(cuentaDestino.getNumeroCuenta());
+			    cantidadOperaciones = operacionCrud.obtenerCantidadOperaciones();
 				cuentaDestino.depositarColones(pMontoTransferencia, cantidadOperaciones);
 				cuentaCrud.actualizarSaldo(cuentaDestino);
 				Operacion operacionDestino = cuentaDestino.getOperaciones().get(cuentaDestino.getOperaciones().size() - 1);
@@ -489,6 +523,7 @@ public class OperacionControlador extends HttpServlet {
 		} else {
 			this.intentos = 2;
 		}
+		System.out.println("QUEDAN " + this.intentos + "INTENTOS-------------------------------------------");
 	}
 	
 	private void inactivarCuentaPorIntentosFallidos() {
@@ -499,8 +534,9 @@ public class OperacionControlador extends HttpServlet {
 	
 	private void enviarCorreo(){
 		Cliente cliente = new ClienteCRUD().consultarPropietarioCuenta(cuenta.getNumeroCuenta());
-		Correo correo = new Correo();
-		correo.enviarCorreo(cliente.getCorreoElectronico(),cliente.getNombre() + " " + cliente.getPrimerApellido() + " " + cliente.getSegundoApellido(), cuenta.getNumeroCuenta());
+		ICorreo correo = new CorreoLenguajeDecorator(new Correo(cliente.getNombre() + " " + cliente.getPrimerApellido() + " " + cliente.getSegundoApellido(), cuenta.getNumeroCuenta()));
+		//Correo correo = new Correo(cliente.getNombre() + " " + cliente.getPrimerApellido() + " " + cliente.getSegundoApellido(), cuenta.getNumeroCuenta());
+		correo.enviarCorreo(cliente.getCorreoElectronico());
 	}
 
 	private String cambiarSaltosLinea(String pTexto) {

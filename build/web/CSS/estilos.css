@@ -79,6 +79,11 @@ a:link, a:visited, a:active{
     width: 97%;
 }
 
+.form-radio-container{
+    text-align: left;
+    margin-bottom: 20px;
+}
+
 .listas_registros{
     margin-left: 10%;
     border: black 1px solid;

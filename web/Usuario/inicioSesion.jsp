@@ -1,25 +1,21 @@
 <%-- 
-    Document   : index
-    Created on : 5 may. 2022, 20:26:17
+    Document   : inicioSesion
+    Created on : 3 jun. 2022, 08:46:51
     Author     : Gustavo
 --%>
 
-<%@page contentType="text/html" pageEncoding="ISO-8859-1"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-        <title>iBanco</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>JSP Page</title>
         <link rel="stylesheet" type="text/css" href="/BancoAppWeb/CSS/estilos.css"/>
     </head>
     <body>
-        <nav class="barnav">
+         <nav class="barnav">
             <h1 id="titulo">iBanco</h1>
             <ul class="nav-ul">
-                <li class="nav-li">
-                    <a href="MenuControlador?accion=iniciarSesionUsuario">Consultar bitácora de actividad</a>
-                </li>
                 <li class="nav-li">
                     <a href="MenuControlador?accion=registrarCliente">Registrar cliente</a>
                 </li>
@@ -39,13 +35,13 @@
                     <a href="MenuControlador?accion=depositarColones">Depositar en colones</a>
                 </li>
                 <li class="nav-li">
-                    <a href="MenuControlador?accion=depositarDolares">Depositar en dólares</a>
+                    <a href="MenuControlador?accion=depositarDolares">Depositar en dÃ³lares</a>
                 </li>
                 <li class="nav-li">
                     <a href="MenuControlador?accion=retirarColones">Retirar en colones</a>
                 </li>
                 <li class="nav-li">
-                    <a href="MenuControlador?accion=retirarDolares">Retirar en dólares</a>
+                    <a href="MenuControlador?accion=retirarDolares">Retirar en dÃ³lares</a>
                 </li>
                 <li class="nav-li">
                     <a href="MenuControlador?accion=transferir">Transferir a otra cuenta</a>
@@ -60,13 +56,13 @@
                     <a href="MenuControlador?accion=consultarSaldoActual">Consultar saldo actual</a>
                 </li>
                 <li class="nav-li">
-                    <a href="MenuControlador?accion=consultarSaldoActualDolares">Consultar saldo actual en dólares</a>
+                    <a href="MenuControlador?accion=consultarSaldoActualDolares">Consultar saldo actual en dÃ³lares</a>
                 </li>
                 <li class="nav-li">
                     <a href="MenuControlador?accion=consultarEstadoCuenta">Consultar estado de cuenta</a>
                 </li>
                 <li class="nav-li">
-                    <a href="MenuControlador?accion=consultarEstadoCuentaDolares">Consultar estado de cuenta en dólares</a>
+                    <a href="MenuControlador?accion=consultarEstadoCuentaDolares">Consultar estado de cuenta en dÃ³lares</a>
                 </li>
                 <li class="nav-li">
                     <a href="MenuControlador?accion=consultarEstatus">Consultar estatus de cuenta</a>
@@ -79,11 +75,28 @@
                 </li>
             </ul>
         </nav>
+        
+        
         <div class="contenedor">
-            <h2>Seleccione la acción que desee realizar en el sistema</h2>
-           
-            <h3 id="mensaje-exito">Último mensaje del sistema:<br><br><br><%out.print(session.getAttribute("mensaje"));%></h3>
-        </div>
+            
+            <h2>AutorizaciÃ³n de usuario administrador</h2>
 
+            <form class="reg-form" action="UsuarioControlador?accion=autorizar" method="POST" autocomplete="off">
+
+                <div class="form-input-container">
+                    <label class="form-label">Nombre de usuario</label>
+                    <input class="form-input" id="nombreUsuario" name="nombreUsuario" type="text" required/>
+                </div>
+
+                <div class="form-input-container">
+                    <label class="form-label">ContraseÃ±a</label>
+                    <input class="form-input"  id="contrasena" name="contrasena" type="password" required/>    
+                </div>
+
+                <button id="autorizar" name="autorizar" type="submit">Autorizar</button>
+
+            </form>
+
+        </div>
     </body>
 </html>

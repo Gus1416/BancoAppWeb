@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet(name = "MenuControlador", urlPatterns = {"/MenuControlador"})
 public class MenuControlador extends HttpServlet {
 
-
 	// <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
 	/**
 	 * Handles the HTTP <code>GET</code> method.
@@ -31,35 +30,30 @@ public class MenuControlador extends HttpServlet {
 		String accion;
 		RequestDispatcher dispatcher = null;
 		accion = request.getParameter("accion");
-		
-
 
 		if (accion == null || accion.isEmpty()) {
 			if (request.getSession().getAttribute("mensaje") == null) {
 				request.getSession().setAttribute("mensaje", "");
 			}
 			dispatcher = request.getRequestDispatcher("Menu/index.jsp");
-			dispatcher.forward(request, response);
+			//dispatcher.forward(request, response);
 
-		} else if (accion.equals("registrarCliente") || accion.equals("listarClientes")){
+		} else if (accion.equals("registrarCliente") || accion.equals("listarClientes")) {
 			dispatcher = request.getRequestDispatcher("/ClienteControlador");
-			dispatcher.forward(request, response);
-			
-		} else if (accion.equals("registrarCuenta") || accion.equals("listarCuentas")){
+			//dispatcher.forward(request, response);
+
+		} else if (accion.equals("registrarCuenta") || accion.equals("listarCuentas")) {
 			dispatcher = request.getRequestDispatcher("/CuentaControlador");
-			dispatcher.forward(request, response);
-			
-		} else if (accion.equals("cambiarPin") || accion.equals("depositarColones") || accion.equals("depositarDolares") 
-						|| accion.equals("retirarColones") || accion.equals("retirarDolares")
-						|| accion.equals("consultarTipoCambioCompra") || accion.equals("consultarTipoCambioVenta") 
-						|| accion.equals("consultarSaldoActual") || accion.equals("consultarSaldoActualDolares")
-						|| accion.equals("consultarEstadoCuenta") || accion.equals("consultarEstadoCuentaDolares")
-						|| accion.equals("consultarEstatus")
-						|| accion.equals("consultarTotalComisiones") || accion.equals("consultarComisionesCuenta")
-						|| accion.equals("transferir")){
+			//dispatcher.forward(request, response);
+
+		} else if (accion.equals("iniciarSesionUsuario")) {
+			dispatcher = request.getRequestDispatcher("/UsuarioControlador");
+			//dispatcher.forward(request, response);
+
+		} else {
 			dispatcher = request.getRequestDispatcher("/OperacionControlador");
-			dispatcher.forward(request, response);
 		}
+		dispatcher.forward(request, response);
 	}
 
 	/**
@@ -75,15 +69,4 @@ public class MenuControlador extends HttpServlet {
 					throws ServletException, IOException {
 		doGet(request, response);
 	}
-
-	/**
-	 * Returns a short description of the servlet.
-	 *
-	 * @return a String containing servlet description
-	 */
-	@Override
-	public String getServletInfo() {
-		return "Short description";
-	}// </editor-fold>
-
 }

@@ -13,7 +13,10 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import logicacreacional.BitacoraSingleton;
 import logicadeaccesodedatos.ClienteCRUD;
+import logicadeaccesodedatos.OperacionCRUD;
+import logicadenegocios.Bitacora;
 import logicadenegocios.Cliente;
 import logicadenegocios.Ordenacion;
 
@@ -53,11 +56,15 @@ public class ClienteControlador extends HttpServlet {
 			String numeroTelefono = request.getParameter("numeroTelefono");
 			String correoElectronico = request.getParameter("correoElectronico");
 			registrarCliente(primerApellido, segundoApellido, nombre, identificacion, convertirStringADate(fechaNacimiento), numeroTelefono, correoElectronico);
+			
+			registrarEnBitacora("Registro de Cliente", "WEB");
+			
 			response.sendRedirect("MenuControlador");
 
 		} else if (accion.equals("listarClientes")) {
 			dispatcher = request.getRequestDispatcher("Cliente/listaClientes.jsp");
 			listarClientes();
+			registrarEnBitacora("Listar Clientes Ordenados", "WEB");
 			dispatcher.forward(request, response);
 			
 		} else if (accion.equals("verDetallesCliente")){		
@@ -65,10 +72,24 @@ public class ClienteControlador extends HttpServlet {
 			String identificacion = request.getParameter("cliente");
 			Cliente cliente = new ClienteCRUD().consultarCliente(identificacion);
 			String detallesCliente = cambiarSaltosLinea(cliente.toString() + "Cuentas: <br></br>" + cliente.mostrarNumerosCuentaCliente());
-			
+			registrarEnBitacora("Consulta Detalles Cliente", "WEB");
 			request.setAttribute("detallesCliente", detallesCliente);
 			dispatcher.forward(request, response);
 		}
+	}
+	
+	private void registrarEnBitacora(String pTipoOperacion, String pVista) {
+		Date pFechaHora = obtenerFechaHoraSistema();
+		SimpleDateFormat formatterFecha = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat formatterHora = new SimpleDateFormat("HH:mm:ss");
+		String[] registro = {formatterFecha.format(pFechaHora), formatterHora.format(pFechaHora), pTipoOperacion, pVista};	
+		Bitacora bitacora = BitacoraSingleton.getInstance();
+		new OperacionCRUD().registrarEnBitacora(registro);
+		bitacora.setRegistro(registro);
+	}
+	
+	private Date obtenerFechaHoraSistema(){
+		return new Date(System.currentTimeMillis());
 	}
 
 	private void registrarCliente(String pPrimerApellido, String pSegundoApellido, String pNombre, String pIdentificacion, Date pFechaNacimiento, String pNumeroTelefono, String pCorreoElectronico) {
@@ -83,7 +104,7 @@ public class ClienteControlador extends HttpServlet {
 							+ "<br></br>Fecha de Nacimiento: " + new SimpleDateFormat("dd-MM-yyyy").format(cliente.getFechaNacimiento())
 							+ "<br></br>Número telefónico: " + cliente.getNumeroTelefono();
 			request.getSession().setAttribute("mensaje", mensaje);
-
+			
 		} else {
 			String mensaje = "No se pudo registrar el cliente";
 			request.getSession().setAttribute("mensaje", mensaje);
@@ -112,17 +133,6 @@ public class ClienteControlador extends HttpServlet {
 					throws ServletException, IOException {
 		doGet(request, response);
 	}
-
-	/**
-	 * Returns a short description of the servlet.
-	 *
-	 * @return a String containing servlet description
-	 */
-	@Override
-	public String getServletInfo() {
-		return "Short description";
-	}// </editor-fold>
-	
 	
 	private Date convertirStringADate(String pFecha){
 		try {
@@ -146,4 +156,3 @@ public class ClienteControlador extends HttpServlet {
 		return arregloClientes;
 	}
 }
-	

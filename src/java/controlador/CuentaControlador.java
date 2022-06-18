@@ -3,14 +3,18 @@ package controlador;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import logicacreacional.BitacoraSingleton;
 import logicadeaccesodedatos.ClienteCRUD;
 import logicadeaccesodedatos.CuentaCRUD;
+import logicadeaccesodedatos.OperacionCRUD;
+import logicadenegocios.Bitacora;
 import logicadenegocios.Cliente;
 import logicadenegocios.Cuenta;
 import logicadenegocios.Ordenacion;
@@ -48,17 +52,20 @@ public class CuentaControlador extends HttpServlet {
 			String pin = request.getParameter("pin");
 			double montoInicial = Double.parseDouble(request.getParameter("montoInicial"));
 			registrarCuenta(identificacion, pin, montoInicial);
+			registrarEnBitacora("Creación de Cuenta Bancaria", "WEB");
 			response.sendRedirect("MenuControlador");
 			
 		} else if (accion.equals("listarCuentas")){
 			dispatcher = request.getRequestDispatcher("Cuenta/listaCuentas.jsp");
 			listarCuentas();
+			registrarEnBitacora("Listar Cuentas Ordenadas", "WEB");
 			dispatcher.forward(request, response);
 			
 		} else if (accion.equals("verDetallesCuenta")){
 			dispatcher = request.getRequestDispatcher("Cuenta/detallesCuenta.jsp");
 			String numeroCuenta = request.getParameter("numeroCuenta");
 			verDetallesCuenta(numeroCuenta);
+			registrarEnBitacora("Consulta Detalle Cuenta", "WEB");
 			dispatcher.forward(request, response);
 			
 		} else if (accion.equals("cambiarPin")){
@@ -68,6 +75,20 @@ public class CuentaControlador extends HttpServlet {
 		} 
 	}
 
+	private void registrarEnBitacora(String pTipoOperacion, String pVista) {
+		Date pFechaHora = obtenerFechaHoraSistema();
+		SimpleDateFormat formatterFecha = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat formatterHora = new SimpleDateFormat("HH:mm:ss");
+		String[] registro = {formatterFecha.format(pFechaHora), formatterHora.format(pFechaHora), pTipoOperacion, pVista};
+		Bitacora bitacora = BitacoraSingleton.getInstance();
+		new OperacionCRUD().registrarEnBitacora(registro);
+		bitacora.setRegistro(registro);
+	}
+
+	private Date obtenerFechaHoraSistema() {
+		return new Date(System.currentTimeMillis());
+	}
+	
 	private void registrarCuenta(String pIdentificacion, String pPin, double pMontoInicial) {
 		 int numeroCuentas = new CuentaCRUD().obtenerCantidadCuentas();
 		Cuenta cuenta = new Cuenta(pPin, pMontoInicial, numeroCuentas);
@@ -108,7 +129,6 @@ public class CuentaControlador extends HttpServlet {
 		}
 		return arregloCuentas;
 	}
-
 	
 	private void verDetallesCuenta(String pNumeroCuenta) {
 		Cuenta cuenta = new CuentaCRUD().consultarCuenta(pNumeroCuenta);
@@ -118,8 +138,6 @@ public class CuentaControlador extends HttpServlet {
 							+ "<br></br>Saldo actual. " + String.format("%,.2f", cuenta.getSaldo());
 		request.setAttribute("detallesCuenta", detallesCuenta);
 	}
-	
-	
 	
 	/**
 	 * Handles the HTTP <code>POST</code> method.
@@ -134,15 +152,4 @@ public class CuentaControlador extends HttpServlet {
 					throws ServletException, IOException {
 		doGet(request, response);
 	}
-
-	/**
-	 * Returns a short description of the servlet.
-	 *
-	 * @return a String containing servlet description
-	 */
-	@Override
-	public String getServletInfo() {
-		return "Short description";
-	}// </editor-fold>
-
 }

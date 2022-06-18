@@ -18,6 +18,9 @@
             <h1 id="titulo">iBanco</h1>
             <ul class="nav-ul">
                 <li class="nav-li">
+                    <a href="MenuControlador?accion=iniciarSesionUsuario">Consultar bitácora de actividad</a>
+                </li>
+                <li class="nav-li">
                     <a href="MenuControlador?accion=registrarCliente">Registrar cliente</a>
                 </li>
                 <li class="nav-li">
